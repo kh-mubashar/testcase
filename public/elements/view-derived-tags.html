@@ -1,0 +1,402 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="view-derived-tags">
+
+    <template>
+        <style>
+            .nav-link.active {
+                background: #dee2e6;
+            }
+
+            ::content .derive-tag-container {
+                overflow-y: auto;
+                background: #dee2e6;
+            }
+
+            @media (max-width: 575.98px) {
+                ::content .derive-tag-container {
+                    width: 100% !important;
+                }
+            }
+
+            @media (max-width: 1199.98px) {
+                ::content .derive-tag-container {
+                    width: 340px !important;
+                }
+            }
+
+            .searchResult {
+                display: none;
+                position: absolute;
+                top: 40px;
+                left: 0px;
+                width: 100%;
+                z-index: 1;
+            }
+
+            .searchResult .list-group .list-group-item {
+                cursor: pointer !important;
+            }
+
+            .fa-tags {
+                width: 16px;
+
+            }
+
+            .fa-info-circle {
+                outline-color: transparent;
+                text-decoration: none;
+                color: #343a40;
+                cursor: pointer;
+                font-size: 16px;
+                position: relative;
+            }
+
+            .fa-link {
+                transform: rotate(90deg);
+                font-size: 9px;
+                margin-top: 12px;
+                margin-left: -5px;
+            }
+        </style>
+        <div class="container-fluid h-100  container-with-sidebar">
+            <div class="d-flex h-100">
+                <nav class="bg-light flex-grow-1 flex-lg-grow-0 sidebar position-fixed h-100 text-center border-right">
+                    <ul class="sub-nav nav flex-lg-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/data-management/upload-csv"
+                                data-toggle="tooltip" data-placement="right" title="Upload CSV">
+                                <i class="fas fa-upload"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 active" href="#/data-management/derived-tags"
+                                data-toggle="tooltip" data-placement="right" title="Derived Tags">
+                                <i class="fas fa-tags"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/data-management/aggregated-tag"
+                                data-toggle="tooltip" data-placement="right" title="Aggregated Tag">
+                                <i class="fas fa-tag"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/data-management/opc-ua"
+                                data-toggle="tooltip" data-placement="right" title="OPC UA">
+                                <i class="fas fa-satellite-dish"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/data-management/tag-management"
+                                data-toggle="tooltip" data-placement="right" title="Tag Management">
+                                <i class="far fa-list-alt"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <div class="derive-tag-container  w-25">
+                    <div class=" flex-column pt-2 px-3  h-100 border-right ">
+                        <div class="lead pb-2 d-flex justify-content-between  border-bottom border-light mb-2">
+                            <span><strong>Derived Tags</strong></span>
+
+                            <!-- <a href="JavaScript:(0);" title="Derived Tag" data-toggle="popover" data-placement="bottom"
+                                data-trigger="focus" data-html="true"
+                                data-content="Iridium allows the user to generate customized tag based on arithmetic formulas; in the text box marked formula user can enter the formula that will denote your new customized tag. User can construct the formula using alphabets to denote tag names and mathematical punctuation like Plus (+), minus (-), Multiplication (*) and division (/) to formulate tag equation. e.g. ((A-B) +C). 
+                            Once you have constructed the formula, input the tag name and description to incorporate this tag to the existing list."><i
+                                    class="fas fa-info-circle "></i></a> -->
+                        </div>
+
+                        <form id="saveDerivationForm" onsubmit="return false">
+                            <div class="form-group mb-23">
+                                <label class="col-form-label py-1" for="inputFormula">Formula</label>
+                                <!-- <a data-toggle="popover" title="Popover title" data-placement="right"
+                                    data-content="And here's some amazing content. It's very engaging. Right?">
+                                    <i class="fas fa-info-circle" data-toggle="popover"></i>
+                                </a> -->
+                                <textarea required on-input="_mappingFields" type="text" class="form-control"
+                                    id="inputFormula" name="formula"></textarea>
+                            </div>
+                            <div id="fieldMapping" class="form-group mb-2">
+                                <template is="dom-if" if="[[tagMapping]]">
+                                    <div class=" mb-3">
+                                        <label class="row col-sm-12 h6">Mapping</label>
+                                    </div>
+                                    <template is="dom-repeat" items="[[tagMapping]]" as="tagMapping">
+                                        <template is="dom-if" if="[[tagMapping.field]]">
+                                            <div style="position:relative;"
+                                                class="tagVarElement mb-1 form-group d-flex justify-content-between">
+                                                <label for="inputMappingVariable"
+                                                    class="pr-2 col-form-label text-uppercase">[[tagMapping.field]]</label>
+                                                <div class="tagVarElement " style="position:relative;width: 100%;">
+                                                    <input type="text" autocomplete="off" on-input="_openList"
+                                                        pattern="^[a-zA-Z0-9_]*$" required class="form-control"
+                                                        name='[[tagMapping.field]]' id$="[[tagMapping.field]]">
+                                                    <div id$="searchResult_[[tagMapping.field]]" class="searchResult">
+                                                        <ul class="list-group">
+                                                            <template is="dom-repeat" items="[[tagMappingS]]"
+                                                                as="tagResults">
+                                                                <li on-click="_addTag"
+                                                                    data-tagSelected$="[[tagResults.tag_id]]"
+                                                                    data-tagName$="[[tagResults.tag_name]]"
+                                                                    class="border-none  list-group-item px-2 py-1 border-top rounded-0">
+                                                                    <span
+                                                                        class="h6 d-block mb-0">[[tagResults.tag_name]]</span>
+                                                                    <p class="text-black-50 mb-0">
+                                                                        [[tagResults.description]]
+                                                                    </p>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </template>
+                                </template>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="col-form-label py-1" for="inputName">Name</label>
+                                <input type="text" class="form-control" pattern="^[a-zA-Z0-9_]*$" id="inputName"
+                                    required name="inputName">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="col-form-label py-1" for="inputDescription">Description</label>
+                                <textarea type="text" class="form-control" id="inputDescription"
+                                    name="inputDescription"></textarea>
+                            </div>
+                            <template is="dom-if" if="[[derivationAlert]]">
+                                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                    <span id="derivationAlert">[[derivationAlert]]</span>
+                                </div>
+                            </template>
+                            <div class="d-flex flex-row mb-3">
+                                <button type="button" on-click="_clearForm"
+                                    class="btn btn-secondary btn-sm btn-block mr-1 mt-2">Cancel</button>
+                                <button type="submit" on-click="_saveDerivation"
+                                    class="btn btn-primary btn-sm btn-block ml-1">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <main role="main" class="p-3 pb-0 w-75 flex-grow-1">
+                    <div class="container-fluid">
+                        <div class="row ">
+                            <div class="px-3  rounded text-center mx-auto">
+                                <div class="lead pb-4"><strong>Important Instruction</strong></div>
+                                <div class="row no-gutters border mb-3 rounded overflow-hidden ">
+                                    <div class="col p-2 d-flex flex-column position-static text-right">
+                                        <div class="mb-1 text-muted">Step 1</div>
+                                        <p class="card-text mb-auto ">This is a wider card with supporting text
+                                            below as a natural lead-in to
+                                            additional content.</p>
+                                    </div>
+                                    <div class="col-auto d-none d-lg-block">
+                                        <img id="filePreview" class="img-fluid " src="/public/images/1.PNG">
+                                    </div>
+                                </div>
+                                <div class="row no-gutters border mb-3 rounded overflow-hidden text-left">
+                                    <div class="col-auto d-none d-lg-block">
+                                        <img id="filePreview" class="img-fluid " src="/public/images/2.PNG">
+                                    </div>
+                                    <div class="col p-2 d-flex flex-column position-static">
+                                        <div class="mb-1 text-muted">Step 2</div>
+                                        <p class="card-text mb-auto ">This is a wider card with supporting text
+                                            below as a natural lead-in to
+                                            additional content.</p>
+                                    </div>
+                                </div>
+                                <div class="row no-gutters border mb-3 rounded overflow-hidden">
+                                    <div class="col p-2 d-flex flex-column position-static text-right">
+
+                                        <div class="mb-1 text-muted">Step 3</div>
+                                        <p class="card-text mb-auto ">This is a wider card with supporting text
+                                            below as a natural lead-in to
+                                            additional content.</p>
+                                    </div>
+                                    <div class="col-auto d-none d-lg-block">
+                                        <img id="filePreview" class="img-fluid " src="/public/images/3.PNG">
+                                    </div>
+                                </div>
+                                <div class="row no-gutters border  rounded overflow-hidden ">
+                                    <div class="col-auto d-none d-lg-block">
+                                        <img id="filePreview" class="img-fluid " src="/public/images/4.PNG">
+                                    </div>
+                                    <div class="col p-2 d-flex flex-column position-static text-left">
+                                        <div class="mb-1 text-muted">Step 4</div>
+                                        <p class="card-text mb-auto ">This is a wider card with supporting text
+                                            below as a natural lead-in to
+                                            additional content.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+        <global-loader>
+            <iron-ajax auto id="e_searchTag" url="/getTagList" last-response="{{tagDataList}}"
+                on-response="_onResponse_searchTag" on-error="_onError_searchTag"></iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="e_derivedTag" handle-as="json"
+                url="/derivedTag/[[derivedformula]]/[[derivedTagName]]/[[derivedDescription]]/[[derivedTagId]]/[[organizationId]]"
+                on-response="_onResponse_derivedTag" on-error="_onError_derivedTag"></iron-ajax>
+        </global-loader>
+    </template>
+
+    <script>
+        Polymer({
+            is: "view-derived-tags",
+            attached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was attached'); */
+                this.async(function () {
+                    $('[data-toggle="tooltip"]').tooltip();
+                    $('[data-toggle="popover"]').popover();
+                });
+            },
+            detached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was detached'); */
+            },
+            created: function () {
+                /* console.log(this.localName + '#' + this.id + ' was created'); */
+                document.documentElement.classList.remove('in-progress');
+            },
+            ready: function () {
+                root = this;
+            },
+            _addTag: function (e) {
+                var root = this;
+                var mapwith = e.target.parentNode.parentNode.parentNode.parentNode.childNodes[1].id;
+                document.getElementById(mapwith).value = e.currentTarget.dataset.tagname;
+                root.tagSearchResult = false;
+                e.target.parentNode.parentNode.parentNode.style.display = "none"
+            },
+            _mappingFields: function (e) {
+                root = this
+                var str = e.target.value;
+                var list = [];
+                var uniql = "";
+                var obj = {};
+                var inputtxt = e.target;
+                var str = inputtxt.value;
+                var letters = /^[A-Za-z]+$/;
+                if (inputtxt) {
+                    for (var x = 0; x < str.length; x++) {
+
+                        if (uniql.indexOf(str.charAt(x)) == -1) {
+                            uniql += str[x];
+
+                        }
+                    }
+                    for (var i = 0; i < uniql.length; i++) {
+                        if (uniql[i].match(letters)) {
+                            var newlist = {
+                                field: uniql[i],
+                                TagList: root.tagDataList
+                            }
+                            list[i] = newlist;
+                        }
+                    }
+                    var newlist = JSON.stringify(list);
+                    this.tagMapping = list;
+                    return true;
+                } else {
+                    return false;
+                }
+            },
+
+            attributeChanged: function (name, type) {
+                /* console.log(this.localName + '#' + this.id + ' attribute ' + name +
+                    ' was changed to ' + this.getAttribute(name)); */
+            },
+            _saveDerivation: function (e) {
+                root = this;
+                var check = false;
+                var overlay = document.documentElement;
+                if (root.$$('#saveDerivationForm').checkValidity()) {
+                    var elements = document.querySelectorAll('#fieldMapping input');
+                    // if (root.$$('#saveDerivationForm').checkValidity()) {
+                    root.derivedformula = root.$.inputFormula.value;
+                    root.derivedTagName = root.$.inputName.value;
+                    root.derivedDescription = root.$.inputDescription.value;
+                    root.derivedTagId = window.organization_id.toUpperCase() + '_' + root.$.inputName.value;
+                    root.organizationId = window.organization_id.toUpperCase();
+                    var obj = {};
+                    for (var i = 0; i < elements.length; i++) {
+                        var item = elements.item(i);
+                        obj[item.name] = window.organization_id.toUpperCase() + '_' + item.value
+
+                    }
+                    root.$.e_derivedTag.body = obj;
+                    var data = JSON.stringify(
+                        obj
+                    );
+                    var xhr = new XMLHttpRequest();
+                    xhr.withCredentials = true;
+                    xhr.addEventListener("readystatechange", function () {
+                        if (this.readyState === 4) {
+                            var response = JSON.parse(this.responseText);
+                            root.derivationAlert = true;
+                            root.derivationAlert = response.status;
+                            root.async(function () {
+                                root.derivationAlert = false;
+                            }, 5000);
+                            overlay.classList.remove('in-progress');
+                        }
+                    });
+
+                    xhr.open("POST", "http://ec2-54-88-0-215.compute-1.amazonaws.com:84/create/derivedTag");
+                    xhr.setRequestHeader("username", "administrator");
+                    xhr.setRequestHeader("Content-Type", "application/json");
+                    xhr.setRequestHeader("password", "7eRmina7oR");
+                    xhr.setRequestHeader("formula", root.derivedformula);
+                    xhr.setRequestHeader("derivedTagName", root.derivedTagName);
+                    xhr.setRequestHeader("description", root.derivedDescription);
+                    xhr.setRequestHeader("derivedTagId", root.derivedTagId);
+                    xhr.setRequestHeader("organizationId", window.organization_id.toUpperCase());
+                    xhr.setRequestHeader("userId", window.user_id);
+                    xhr.setRequestHeader("cache-control", "no-cache");
+                    overlay.classList.add('in-progress');
+                    xhr.send(data);
+                    // }
+                }
+            },
+            _clearForm: function () {
+                root = this;
+                root.$.saveDerivationForm.reset();
+            },
+            _onResponse_derivedTag: function (e) {
+                root = this;
+                root.$.e_searchTag.generateRequest();
+                root.derivationAlert = true;
+                root.derivationAlert = e.detail.response.status;
+                this.async(function () {
+                    root.derivationAlert = false;
+                }, 5000);
+            },
+            _onError_derivedTag: function (e) {
+                root = this;
+                root.derivationAlert = true;
+                if (e.detail.response.status)
+                    root.derivationAlert = e.detail.response.status;
+            },
+            _openList: function (e) {
+                root.this;
+                var tagList = root.tagDataList;
+                var inputTag = e.target.value.toLowerCase();
+                var filteredTag = tagList.filter(function (arr, key) {
+                    return (arr.tag_id.toLowerCase().indexOf(inputTag) != -1 || arr.description.toLowerCase().indexOf(inputTag) != -1);
+                });
+                var searchResultID = 'searchResult_' + e.currentTarget.id;
+                document.getElementById(searchResultID).style.display = 'block';
+                root.tagMappingS = filteredTag
+            }
+
+
+        });
+    </script>
+
+</dom-module>

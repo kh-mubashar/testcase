@@ -1,0 +1,74 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="fingerprint-list.html">
+<link rel="import" href="fingerprint-detail.html">
+
+
+<dom-module id="view-fingerprint">
+
+    <template>
+        <fingerprint-list list-items='{{listData}}' disable-auto-select="true" on-selected-item-changed="_updateDetails"
+            sort-order="ascending">
+            <template is="dom-if" if="{{!itemData}}" restamp>
+                <div id="detailFallback" class="detail-fallback align-items-center d-flex h-100">
+                    <div class="text-center text-muted w-100">Select an item from the list to see the details.</div>
+                </div>
+            </template>
+            <template is="dom-if" if="{{itemData}}" restamp>
+                <fingerprint-detail item-data="{{itemData}}"></fingerprint-detail>
+            </template>
+        </fingerprint-list>
+        <global-loader>
+            <iron-ajax auto id="getFingerPrint" url="/getFingerPrint" last-response="{{listData}}"
+                on-response="_onResponse_searchTag" on-error="_onError"></iron-ajax>
+        </global-loader>
+    </template>
+
+    <script>
+        Polymer({
+            is: "view-fingerprint",
+
+            properties: {
+                itemData: {
+                    type: Object,
+                    value: function () {
+                        return null
+                    }
+                }
+            },
+
+            created: function () {
+                /* console.log(this.localName + '#' + this.id + ' was created'); */
+                document.documentElement.classList.remove('in-progress');
+            },
+
+            ready: function () {
+                /* console.log(this.localName + '#' + this.id + ' has local DOM initialized'); */
+
+
+            },
+
+            attached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was attached'); */
+            },
+
+            detached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was detached'); */
+            },
+
+            attributeChanged: function (name, type) {
+                /* console.log(this.localName + '#' + this.id + ' attribute ' + name +
+                    ' was changed to ' + this.getAttribute(name)); */
+            },
+
+            _updateDetails: function (e) {
+                var selectedItem = e.target.listItems.find(function (item) {
+                    return parseInt(item.id) === parseInt(e.detail.value);
+                });
+                this.set("itemData", selectedItem);
+                //console.log('item', parseInt(e.detail.value), selectedItem);
+            },
+        });
+    </script>
+
+</dom-module>

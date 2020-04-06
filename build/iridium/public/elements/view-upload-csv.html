@@ -1,0 +1,167 @@
+<dom-module id="view-upload-csv">
+
+    <template>
+        <style>
+            .file-upload {
+                position: relative;
+                border-style: dashed !important;
+                height: 320px;
+            }
+
+            .file-upload__options {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                z-index: 99;
+                transform: translate(-50%, -50%);
+            }
+
+            .file-upload__control {
+                cursor: pointer;
+                width: 100% !important;
+                height: inherit;
+                border: none;
+                padding: 0;
+                background: transparent;
+                opacity: 0;
+            }
+
+            .nav-link.active {
+                background: #dee2e6;
+            }
+
+            .fa-tags {
+                width: 16px;
+            }
+
+            .fa-link {
+                transform: rotate(90deg);
+                font-size: 9px;
+                margin-top: 12px;
+                margin-left: -5px;
+            }
+
+            .sidebar {
+                overflow: hidden;
+            }
+        </style>
+        <div class="container-fluid h-100 container-with-sidebar">
+            <div class="d-flex h-100">
+
+                <nav class="bg-light flex-grow-1 flex-lg-grow-0 sidebar position-fixed h-100 text-center border-right">
+                    <ul class="sub-nav nav flex-lg-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 active" href="#/data-management/upload-csv" data-toggle="tooltip" data-placement="right" title="Upload CSV">
+                                <i class="fas fa-upload"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/data-management/derived-tags" data-toggle="tooltip" data-placement="right" title="Derived Tags">
+                                <i class="fas fa-tags"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/data-management/aggregated-tag" data-toggle="tooltip" data-placement="right" title="Aggregated Tag">
+                                <i class="fas fa-tag"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/data-management/opc-ua" data-toggle="tooltip" data-placement="right" title="OPC UA">
+                                <i class="fas fa-satellite-dish"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/data-management/tag-management" data-toggle="tooltip" data-placement="right" title="Tag Management">
+                                <i class="far fa-list-alt"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <main role="main" class="flex-grow-1">
+                    <div class="container-fluid">
+
+                        <div id="fileUploadResults" class="row">
+                            <div class="col-md-12 mt-3">
+                                <div class="alert alert-info m-0" id="fileUploadResultsConent"></div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-12 mt-3">
+                                <div class="file-upload rounded border border-warning bg-light">
+
+                                    <div class="file-upload__options text-muted text-center">
+                                        <div class="h3 font-weight-normal mb-3">Choose or Drop file here</div>
+
+                                        <div class="mb-2">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" checked="" name="inlineRadioOptions" id="inlineRadio1" value="option1" on-change="_singleFileUpload">
+                                                <label class="form-check-label" for="inlineRadio1">Single Tag
+                                                    File</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" on-change="_multiFileUpload">
+                                                <label class="form-check-label" for="inlineRadio2">Multiple Tags
+                                                    File</label>
+                                            </div>
+                                        </div>
+
+                                        <label for="upload" class="btn btn-dark py-2 px-5">Choose file</label>
+                                        <div id="selectedFiles" class="text-muted">Select *csv file format for the
+                                            upload</div>
+                                        <template is="dom-if" if="[[analyzeResult]]">
+                                            <div class="d-flex align-items-center mt-4 ">
+                                                <label class="form-check-label float-left flex-fill" for="dropdownMenu2">Smoothing
+                                                    Interval</label>
+                                                <div class="dropdown  float-right">
+
+                                                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                        select interval
+                                                    </button>
+                                                    <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                                                        <button class="dropdown-item" type="button">15 Minute</button>
+                                                        <button class="dropdown-item" type="button">30 Minute</button>
+                                                        <button class="dropdown-item" type="button">45 Minute</button>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                            <br>
+                                            <button on-click="_gapAnalysis" class="btn btn-info clearfix" type="button">Analyse</button>
+                                        </template>
+                                    </div>
+
+                                    <input type="file" id="upload" multiple="" class="file-upload__control" accept=".csv" on-change="_fileUploadHandler">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mt-3 mb-3">
+                                <div class="pl-5 pr-5 pt-5 alert-warning rounded text-center">
+                                    <div class="h5 font-weight-normal mb-5 text-muted">
+                                        Please upload CSV file with below format.
+                                    </div>
+                                    <img id="filePreview" class="img-fluid" src="/public/images/single-tag.jpg">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+            </div>
+        </div>
+
+
+        <global-loader>
+            <iron-ajax id="e_fileUpload" on-response="_onResponse_fileUpload" on-error="_onResponse_fileUpload">
+            </iron-ajax>
+        </global-loader>
+
+    </template>
+
+    <script>Polymer({is:"view-upload-csv",created:function created(){$("html").removeClass("in-progress")},ready:function ready(){this.fileUploadType="feoSingleTagFileUpload"},attached:function attached(){this.async(function(){$("[data-toggle=\"tooltip\"]").tooltip();$("#fileUploadResults").hide();$(".dropdown-menu button").click(function(){$(".btn:first-child").text($(this).text());$(".btn:first-child").val($(this).text())})})},detached:function detached(){},attributeChanged:function attributeChanged(name,type){},_singleFileUpload:function _singleFileUpload(){this.$.filePreview.src="/public/images/single-tag.jpg";this.fileUploadType="feoSingleTagFileUpload"},_multiFileUpload:function _multiFileUpload(){this.$.filePreview.src="/public/images/multiple-tags.jpg";this.fileUploadType="feoMultiTagFileUpload"},_fileUploadHandler:function _fileUploadHandler(e){var selectedFiles=e.target.files.length+" file(s) selected. ";if(e.target.files.length){$("#fileUploadResults").hide();$("#fileUploadResultsConent").empty();for(var files=e.target.files,i=0,data;i<files.length;i++){data=new FormData;data.append("userid",window.user_id);data.append("orgID",window.organization_id);var file=files[i];data.append("file",file);data.append("filename",file.name);var e_fileUpload=this.$.e_fileUpload;e_fileUpload.body=data;e_fileUpload.method="POST";e_fileUpload.handleAs="text";e_fileUpload.mimeType="multipart/form-data";e_fileUpload.contentType=!1;e_fileUpload.withCredentials=!0;e_fileUpload.headers.username="administrator";e_fileUpload.headers.password="7eRmina7oR";e_fileUpload.url="http://ec2-54-88-0-215.compute-1.amazonaws.com:82/"+this.fileUploadType+"?"+file.name;e_fileUpload.generateRequest();selectedFiles+="<span class=\"badge badge-pill badge-warning px-3\">"+file.name+"</span>"}this.$.selectedFiles.innerHTML=selectedFiles}},_gapAnalysis:function _gapAnalysis(){window.location.href="#/gap-analysis"},_onResponse_fileUpload:function _onResponse_fileUpload(e){root=this;var response=JSON.parse(e.detail.response);if(e.detail.response&&e.detail.url){$("#fileUploadResults").show();$("#fileUploadResultsConent").append("<div class=\"mb-1\"><span class=\"badge badge-pill badge-dark mr-3 px-3\">"+e.detail.url.split("?").pop()+"</span>"+response.status+"</div>")}root.analyzeResult=!0}});</script>
+
+</dom-module>

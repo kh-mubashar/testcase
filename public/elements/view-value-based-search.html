@@ -1,0 +1,817 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-router/app-router.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<!-- <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.13/moment-timezone-with-data-2012-2022.min.js"></script> -->
+
+<dom-module id="view-value-based-search">
+
+    <template>
+        <style>
+            .nav-link.active {
+                background: #dee2e6;
+            }
+
+            ::content .value-based-container {
+                overflow-y: auto;
+                background: #dee2e6;
+            }
+
+            @media (max-width: 575.98px) {
+                ::content .value-based-container {
+                    width: 100% !important;
+                }
+            }
+
+            @media (max-width: 1199.98px) {
+                ::content .value-based-container {
+                    width: 340px !important;
+                }
+            }
+
+            .searchResult {
+                position: absolute;
+                top: 38px;
+                left: 0;
+                width: 100%;
+                z-index: 1;
+            }
+
+            .searchResult .list-group .list-group-item {
+                cursor: pointer !important;
+            }
+
+            .searchResult .list-group .list-group-item div {
+                word-wrap: break-word;
+            }
+
+            .form-icon {
+                font-size: 20px;
+                cursor: pointer;
+            }
+
+            .hr-text {
+                line-height: 1em;
+                position: relative;
+                outline: 0;
+                border: 0;
+                color: #343a40;
+                text-align: center;
+                height: 1.5em;
+                margin: 0;
+
+            }
+
+            #vbsResults .border-bottom {
+                z-index: unset;
+                border-bottom: 2px solid #f8f9fa !important
+            }
+
+            .hr-text:before {
+                content: '';
+                background: linear-gradient(to right, transparent, #818078, transparent);
+                position: absolute;
+                left: 0;
+                top: 50%;
+                width: 100%;
+                height: 1px;
+            }
+
+            .hr-text:after {
+                content: attr(data-content);
+                position: relative;
+                display: inline-block;
+                padding: 0 .5em;
+                line-height: 1.5em;
+                color: #343a40;
+                background-color: #dee2e6;
+            }
+
+            .TagHeading {
+                font-size: 17px;
+            }
+
+            .TagDesc {
+                font-size: 13px;
+            }
+
+            .fas {
+                cursor: pointer;
+            }
+
+            ::content .highcharts-legend-item-hidden tspan {
+                fill: #ccc !important;
+            }
+
+            .fa-info-circle {
+                outline-color: transparent;
+                text-decoration: none;
+                color: #343a40;
+                cursor: pointer;
+                font-size: 16px;
+            }
+
+            .searchResultField {
+                position: relative;
+            }
+
+            .selectedCriteria {
+                background-color: rgba(255, 255, 255, 0.5);
+            }
+        </style>
+        <div class="container-fluid h-100 container-with-sidebar">
+            <div class="d-flex h-100">
+                <nav class="bg-light sidebar position-fixed h-100 text-center border-right">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/trend-analysis/tag-search"
+                                on-tap="_toggleSearch" data-toggle="tooltip" data-placement="right" title="Tag Search">
+                                <i class="fas fa-tag"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 active" href="#/trend-analysis/value-based-search"
+                                data-toggle="tooltip" data-placement="right" title="Value Based Search">
+                                <i class="fas fa-search"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/trend-analysis/similarity-based-search"
+                                data-toggle="tooltip" data-placement="right" title="Similarity Based Search">
+                                <i class="fas fa-chart-line"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+
+                <div class="value-based-container h-100 w-25">
+                    <div class=" flex-column pt-2  h-100 border-right">
+                        <div class="px-3">
+
+                            <div class="lead pb-2 d-flex justify-content-between  border-bottom border-light mb-2">
+                                <span><strong>Value Based Search</strong></span>
+                                <a href="JavaScript:(0);" title="Value Based Search " data-toggle="popover"
+                                    data-placement="bottom" data-trigger="focus" data-html="true"
+                                    data-content="Iridium can be used to filter all data, reduce noise or apply other filters to the data. The cleaned data can be easily exported for further use in data modeling tools. Iridium's Value based search allows the operator to search in history when the selected tag met the assigned criteria. Conditions can be selected from the box below the tag name, box on the left to be used as a classifier and the second text box to enter the value. User can select the minimum duration when the specific tag met this criteria, this way the user will be able to specify the duration for the selected value. "><i
+                                        class="fas fa-info-circle "></i></a>
+                            </div>
+                            <form id="valueBasedSearchForm" onsubmit="return false">
+                                <div id="trendCheck">
+                                    <div class="form-group mb-2 d-flex flex-row searchResultField">
+                                        <input type="text" required autocomplete="off" class="form-control"
+                                            placeholder="Search tag" id="searchedTag" name="searchedTag"
+                                            value="{{searchedTagNameValue}}">
+                                        <template is="dom-if" if="{{tagSearchResult}}">
+                                            <div class="searchResult">
+                                                <ul class="list-group">
+                                                    <template is="dom-repeat" items="[[tagSearchResult]]"
+                                                        as="tagResults">
+                                                        <li on-click="_addTag" data-tagSelected$="[[tagResults.tag_id]]"
+                                                            data-tagName$="[[tagResults.tag_name]]"
+                                                            class="border-none  list-group-item px-2 py-1 border-top rounded-0">
+                                                            <div class="h6 mb-0">[[tagResults.tag_name]]</div>
+                                                            <div class="text-black-50 mb-0 text-wrap">
+                                                                [[tagResults.description]]
+                                                            </div>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="form-group mb-2 mt-2 ">
+                                        <label for="trendSearchRange" class="col-form-label py-1">Trend Range</label>
+                                        <input id="trendSearchRange" type="text" value=[[value]] name="trendSearchRange"
+                                            class="form-control" />
+                                    </div>
+                                    <div class="d-flex flex-row">
+                                        <button type="button" class="btn btn-primary btn-sm btn-block "
+                                            on-click="_getTagTrend">Search</button>
+                                    </div>
+                                </div>
+                                <template is="dom-if" if="[[vbsCheck]]" restamp>
+
+                                    <div class="form-group selectedCriteria p-2 rounded text-muted mb-2 mt-2">
+                                        <div class="d-flex">
+                                            <label class=" lead flex-grow-1 col-form-label py-1"><strong>Selected
+                                                    Criteria</strong></label>
+                                            <i on-tap="_backtoTrends" class="fas fa-undo"></i>
+                                        </div>
+                                        <div class="d-flex  align-items-center">
+                                            <label class="flex-grow-1 lead col-form-label py-1">Tag
+                                                Name: </label>
+                                            <span>{{searchedTagNameValue}}</span>
+                                        </div>
+                                        <div class="d-flex  align-items-center">
+                                            <label class="flex-grow-1 lead col-form-label py-1">
+                                                Trend From:
+                                            </label>
+                                            <span>{{startTrendDateRange}}</span>
+                                        </div>
+                                        <div class="d-flex  align-items-center">
+                                            <label class="flex-grow-1 lead col-form-label py-1">
+                                                Trend To:
+                                            </label>
+                                            <span>{{endTrendDateRange}}</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label for="datetimes" class="col-form-label py-1">Search Range</label>
+                                        <input class="form-control" id="daterange" type="text" name="datetimes" />
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label for="searchRange" class="col-form-label py-1">Condition</label>
+                                        <div class="d-flex justify-content-between">
+                                            <select required
+                                                class="form-control mr-1 text-capitalize tagOperator col-md-6"
+                                                name="valueSearchTimeFrame" id="valueSearchTimeFrame">
+                                                <option><code>></code></option>
+                                                <option><code><</code></option>
+                                                <option><code>=</code></option>
+                                                <option><code>>=</code></option>
+                                                <option><code><=</code></option>
+
+                                            </select>
+                                            <input required type="number" step="0.0001"
+                                                class="form-control tagValue col-md-6" name="valueSearchDuration"
+                                                id="valueSearchDuration">
+
+                                        </div>
+                                    </div>
+                                    <template is="dom-if" if="[[addConditionalTags]]">
+                                        <template is="dom-repeat" items="{{addConditionalTags}}"
+                                            as="addConditionalTags">
+                                            <hr class="hr-text " data-content="AND">
+                                            <i class="float-right fas fa-times-circle text-dark mb-1"
+                                                on-click="removeCondition"></i>
+                                            <input readonly type="text" required autocomplete="off"
+                                                class="form-control mb-2 " id="fixedSearchedTag"
+                                                value="{{searchedTagNameValue}}" name="fixedSearchedTag">
+                                            <div class="form-group mb-2">
+                                                <div class="d-flex justify-content-between">
+                                                    <select required
+                                                        class="form-control tagOperator mr-1 text-capitalize col-md-6"
+                                                        name="valueSearchTimeFrame" id="valueSearchTimeFrame">
+                                                        <option><code>></code></option>
+                                                        <option><code><</code></option>
+                                                        <option><code>=</code></option>
+                                                        <option><code>>=</code></option>
+                                                        <option><code><=</code></option>
+
+                                                    </select>
+                                                    <input required type="number" step="0.0001"
+                                                        class="form-control tagValue  col-md-6" name="conditionalValue"
+                                                        id="conditionalValue">
+
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </template>
+                                    <div class="form-group">
+                                        <i on-click="_addCondition" class="fas fa-plus-circle form-icon"></i><span
+                                            class="p-1">add condition</span>
+                                    </div>
+
+                                    <div class="form-group mb-2 mt-2">
+                                        <label for="interval" class="col-form-label py-1">At least during</label>
+                                        <div class="d-flex justify-content-between">
+                                            <input required type="number" min="1"
+                                                onkeypress="return event.charCode >= 48"
+                                                class="form-control mr-1 col-md-6" name="interval" id="interval">
+                                            <select id="intervalUnit" required
+                                                class="form-control text-capitalize col-md-6"
+                                                name="valueSearchTimeFrame" id="valueSearchTimeFrame">
+                                                <option>minute</option>
+                                                <option>hour</option>
+                                                <option>day</option>
+                                                <option>week</option>
+                                                <option>month</option>
+                                                <option>year</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <template is="dom-if" if="[[valueSearchAlert]]">
+                                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                            <span id="valueSearchAlert">[[valueSearchAlert]]</span>
+                                        </div>
+                                    </template>
+                                    <div class="d-flex flex-row">
+                                        <button type="submit" class="btn btn-primary btn-sm btn-block ml-1"
+                                            on-click="_performValueSearch">Search</button>
+                                    </div>
+                                </template>
+                            </form>
+                            <template is="dom-if" if="[[valueSearchResult]]">
+                                <div class=" pb-2 border-bottom border-light mt-2 col-form-label"><strong>Results
+                                        ([[totalRecords]])</strong>
+                                </div>
+                                <ul id="vbsResults" class="list-group list-group-flush ">
+                                    <template is="dom-repeat" items="{{_sortList(valueSearchResult)}}"
+                                        as="valueSearchResult">
+                                        <li id$="[[index]]"
+                                            class="list-group-item bg-transparent px-2 py-1 border-bottom  ">
+                                            <small
+                                                class="lead TagHeading">{{_timezoneConverter(valueSearchResult.start_date)}}</small>
+                                            <span class="float-right mt-3"><i data-id$=[[index]]
+                                                    data-startTimestamp$="{{valueSearchResult.start_date}}"
+                                                    data-endTimestamp$="{{valueSearchResult.end_date}}"
+                                                    data-intervalDiff$={{valueSearchResult.time_difference}}
+                                                    on-click="_showTrend" class="fas fa-layer-group"></i></span>
+                                            <div class="text-black-50 TagDesc">
+                                                Instances : {{valueSearchResult.interval_count}}
+                                            </div>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                <main role="main" class="p-3 pb-0 flex-grow-1">
+                    <template is="dom-if" if="[[trendAlerts]]">
+                        <div style="z-index:10;" class="alert alert-info mb-0 alert-dismissible fade show mb-2"
+                            role="alert">
+                            <span id="trendAlerts">[[trendAlerts]]</span>
+                        </div>
+                    </template>
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div id="container" style="width: 100%; height: 85vh;"></div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+
+        <global-loader>
+            <iron-ajax auto id="e_searchTag" url="/getTagList" last-response="{{tagDataList}}"
+                on-response="_onResponse_searchTag" on-error="_onError"></iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax id="e_getTagTrends" last-response="{{tagTrends}}" on-response="_onResponse_getTagTrends"
+                headers='{"Content-Type": "application/json","username":"administrator","password":"7eRmina7oR"}'
+                handle-as="json" on-error="_onError">
+            </iron-ajax>
+        </global-loader>
+    </template>
+
+    <script>
+        Polymer({
+            is: "view-value-based-search",
+            created: function () {
+                /* console.log(this.localName + '#' + this.id + ' was created'); */
+                document.documentElement.classList.remove('in-progress');
+            },
+            attached: function () {
+                root = this;
+                /* console.log(this.localName + '#' + this.id + ' was attached'); */
+                this.async(function () {
+                    $('[data-toggle="tooltip"]').tooltip();
+                    $('[data-toggle="popover"]').popover();
+                    Highcharts.stockChart('container', {
+                        rangeSelector: {
+                            enabled: false
+                        },
+                        boost: {
+                            useGPUTranslations: true
+                        },
+
+                        tooltip: {
+                            split: false,
+                            distance: 30,
+                            padding: 5,
+                            shared: true
+                        },
+                    });
+                });
+            },
+
+            detached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was detached'); */
+            },
+            ready: function () {
+                root = this;
+                root.addCondTags = [];
+                root.endDateRange;
+                root.startDateRange;
+                root.minRange;
+                root.maxRange;
+                root.Range;
+                root.colorCode;
+                /* console.log(this.localName + '#' + this.id + ' has local DOM initialized'); */
+
+
+                var currentDate = new Date();
+                root.endDateRange = moment(currentDate).format('YYYY-MM-DD hh:mm:ss')
+                var start = Date.parse(currentDate) - 604800000;
+                root.startDateRange = moment(start).format('YYYY-MM-DD hh:mm:ss');
+                root.startTrendDateRange = root.startDateRange;
+                root.endTrendDateRange = root.endDateRange;
+                // trend visualization date range
+                $(function () {
+                    $('input[name="trendSearchRange"]').daterangepicker({
+                        timePicker: true,
+                        showDropdowns: true,
+                        timePicker24Hour: true,
+                        timePickerSeconds: false,
+                        alwaysShowCalendars: true,
+                        maxDate: moment().startOf('minutes'),
+                        opens: "right",
+                        ranges: {
+                            'Today': [moment(), moment()],
+                            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                            'This Month': [moment().startOf('month'), moment().endOf('month')],
+                            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                        },
+                        startDate: moment().subtract(1, 'week'),
+                        endDate: moment().startOf('hour'),
+                        locale: {
+                            format: 'YYYY-MM-DD HH:mm',
+                        },
+                    }, function (start, end, label) {
+                        root.startTrendDateRange = start.format('YYYY-MM-DD HH:mm:ss');
+                        root.endTrendDateRange = end.format('YYYY-MM-DD HH:mm:ss');
+                    });
+                });
+
+
+
+            },
+            _getTagTrend: function () {
+                root = this;
+                if (root.searchedTagValue) {
+                    root._getTrends(root.startTrendDateRange, root.endTrendDateRange, root.searchedTagValue);
+                }
+            },
+            _getTrends: function (start, end, tag) {
+                root = this;
+                if (tag && start && end) {
+                    root.$.e_getTagTrends.url = 'http://ec2-54-88-0-215.compute-1.amazonaws.com:84/getVisualizationData/' + tag + '/' + start + '/' + end;
+                    root.$.e_getTagTrends.generateRequest();
+                }
+            },
+            _addTag: function (e) {
+                var root = this;
+                root.tagSearchResult = false;
+                root.valueSearchResult = false;
+                root.addConditionalTags = false;
+                root.minRange = null;
+                root.maxRange = null;
+                root.addCondTags = [];
+                var chart = $('#container').highcharts();
+                // var chart = Highcharts.chart('container');
+                var seriesLength = chart.series.length;
+                for (var i = seriesLength - 1; i > -1; i--) {
+                    chart.series[i].remove();
+                }
+                Highcharts.stockChart('container', {
+                    navigator: {
+                        enabled: true,
+                        height: 60
+                    },
+                    rangeSelector: {
+                        inputEnabled: false,
+                        enabled: false,
+                    },
+                })
+                root.searchedTagValue = e.currentTarget.dataset.tagselected;
+                root.searchedTagNameValue = e.currentTarget.dataset.tagname;
+            },
+            _onResponse_searchTag: function (e) {
+                var root = this;
+                var tagList = e.detail.response;
+                this.async(function () {
+                    root.$.searchedTag.addEventListener('input', function (e) {
+                        var inputTag = e.currentTarget.value.toLowerCase();
+                        if (inputTag) {
+                            var filteredTag = tagList.filter(function (arr, key) {
+                                return (arr.tag_id.toLowerCase().indexOf(inputTag) != -1 || arr.description.toLowerCase().indexOf(inputTag) != -1);
+                            });
+                            root.tagSearchResult = filteredTag;
+                        }
+                        else { root.tagSearchResult = false }
+                    });
+                }.bind(this), 300);
+            },
+            _onResponse_getTagTrends: function (e) {
+                root = this;
+                //datetime range selector
+                $(function () {
+                    $('input[name="datetimes"]').daterangepicker({
+                        timePicker: true,
+                        showDropdowns: true,
+                        timePicker24Hour: true,
+                        timePickerSeconds: false,
+                        alwaysShowCalendars: true,
+                        maxDate: moment().startOf('minutes'),
+                        ranges: {
+                            'Today': [moment(), moment()],
+                            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                            'This Month': [moment().startOf('month'), moment().endOf('month')],
+                            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                        },
+                        startDate: moment().subtract(1, 'week'),
+                        endDate: moment().startOf('hour'),
+                        locale: {
+                            format: 'YYYY-MM-DD HH:mm'
+                        },
+                    }, function (start, end, label) {
+                        root.startDateRange = start.format('YYYY-MM-DD HH:mm:ss');
+                        root.endDateRange = end.format('YYYY-MM-DD HH:mm:ss');
+                    });
+                });
+                root = this;
+
+                root.startDate = root.endDateRange;
+                root.endDate = root.startDateRange;
+                var overlay = document.documentElement;
+                var endDate = (root.ResultendDate);
+                var startDate = (root.ResultstartDate);
+                var minRange = Number(root.minRange);
+                var maxRange = Number(root.maxRange);
+                var range = Number(root.Range);
+                if (range && maxRange && minRange) {
+                    var minRange = Number(root.minRange);
+                    var maxRange = Number(root.maxRange);
+                    var range = Number(root.Range);
+                }
+                else {
+                    var minRange = null;
+                    var maxRange = null;
+                    var range = null;
+                }
+                if (e.detail.response.data) {
+                    root.$.trendCheck.style.display = 'none';
+                    root.vbsCheck = true;
+                    Highcharts.stockChart('container', {
+                        rangeSelector: {
+                            inputEnabled: true,
+                            buttons: [{
+                                type: 'hour',
+                                count: 0,
+                                text: '1h'
+                            }, {
+                                type: 'day',
+                                count: 0,
+                                text: '1d'
+                            }, {
+                                type: 'week',
+                                count: 0,
+                                text: '1w'
+                            }, {
+                                type: 'month',
+                                count: 1,
+                                text: '1m'
+                            }, {
+                                type: 'month',
+                                count: 3,
+                                text: '3m'
+                            }, {
+                                type: 'month',
+                                count: 6,
+                                text: '6m'
+                            }, {
+                                type: 'ytd',
+                                text: 'YTD'
+                            }, {
+                                type: 'year',
+                                count: 1,
+                                text: '1y'
+                            }, {
+                                type: 'all',
+                                text: 'All'
+                            }]
+                        },
+                        time: {
+                            // timezone: 'Pakistan/Karachi'
+                        },
+                        xAxis: {
+                            min: minRange,
+                            max: maxRange,
+                            range: range,
+                            plotBands: [{
+                                color: '#bdc3c7',
+                                from: minRange,
+                                to: maxRange
+                            }]
+                        },
+                        title: {
+                            text: ''
+                        },
+                        legend: {
+                            enabled: true,
+                            allButtonsEnabled: true,
+                            borderColor: '#ced4da',
+                            borderRadius: '5px',
+                            borderWidth: 1,
+                            labelFormatter: function () {
+                                return '<span style="fill: ' + this.color + '">' + this
+                                    .name + '</span>';
+                            },
+                            symbolPadding: 0,
+                            symbolWidth: 0,
+                            symbolRadius: 0
+                        },
+                        yAxis: {
+                            opposite: false
+                        },
+                        tooltip: {
+                            xDateFormat: '%d/%m/%Y %H:%M:%S',
+                            split: false,
+                            valueDecimals: 2
+                        },
+                        navigator: {
+                            height: 60,
+                            series: {
+                                data: e.detail.response.data
+                            },
+                            xAxis: {
+                                plotBands: [{
+                                    color: '#bdc3c7',
+                                    from: minRange,
+                                    to: maxRange,
+                                    id: 'plotband-1'
+                                }]
+                            }
+                        },
+                        series: [{
+                            color: root.colorCode,
+                            name: root.searchedTagNameValue,
+                            data: e.detail.response.data,
+                            dataGrouping: {
+                                // enabled: true
+                            },
+
+                        }],
+                        plotOptions: {
+                            series: {
+                                dataGrouping: {
+                                    approximation: 'high'
+                                    // units: [
+                                    //     ['week', [1]]
+                                    // ]
+                                }
+                            }
+                        },
+                    });
+
+                } else {
+                    root.trendAlerts = e.detail.response.status;
+                    this.async(function () {
+                        root.trendAlerts = false;
+                    }, 5000);
+                }
+            },
+            _backtoTrends: function () {
+
+                root = this;
+                root.$.trendCheck.style.display = 'block';
+                root.vbsCheck = false;
+                root.valueSearchResult = false;
+            },
+            _performValueSearch: function (e) {
+                root = this;
+                if (root.$$('#valueBasedSearchForm').checkValidity()) {
+                    var elements = root.$.valueBasedSearchForm.elements;
+                    var inputs = document.querySelectorAll('#valueBasedSearchForm .tagOperator,#valueBasedSearchForm .tagValue');
+                    var interval = document.querySelector('#interval').value;
+                    var intervalUnit = document.querySelector('#intervalUnit').value.toUpperCase();
+                    root.startDate = root.startDateRange;
+                    root.endDate = root.endDateRange;
+                    root.interval = interval;
+                    root.intervalUnit = intervalUnit;
+                    var tagOperators = [];
+                    for (var i = 0; i < inputs.length; i++) {
+                        var j = i;
+                        if (j <= i) {
+                            ++j;
+                            tagOperators.push({
+                                "operator": inputs[i].value.toString(),
+                                "value": inputs[j].value.toString()
+                            });
+                            ++i;
+                        }
+                        else
+                            return;
+                    }
+                    var data = {
+                        [root.searchedTagValue.toLowerCase()]: tagOperators
+                    }
+                    root.data = JSON.stringify(data);
+                    var overlay = document.documentElement;
+                    //XHR call
+                    var data = root.data;
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.withCredentials = true;
+
+                    xhr.addEventListener("readystatechange", function () {
+                        if (this.readyState === 4) {
+                            root.valueSearchResult = JSON.parse(this.responseText);
+                            root.totalRecords = root.valueSearchResult.data.length;
+                            root.ResultendDate = root.valueSearchResult.endDate;
+                            root.ResultstartDate = root.valueSearchResult.startDate;
+                            overlay.classList.remove('in-progress');
+
+                        }
+                    });
+                    xhr.open("POST", "http://ec2-54-88-0-215.compute-1.amazonaws.com:84/retrieve/valueBasedSearch");
+                    xhr.setRequestHeader("username", 'administrator');
+                    xhr.setRequestHeader("Content-Type", "application/json");
+                    xhr.setRequestHeader("password", "7eRmina7oR");
+                    xhr.setRequestHeader("start_date", root.startDate);
+                    xhr.setRequestHeader("end_date", root.endDate);
+                    xhr.setRequestHeader("interval", root.intervalUnit);
+                    xhr.setRequestHeader("interval_unit", root.interval);
+                    xhr.setRequestHeader("cache-control", "no-cache");
+                    overlay.classList.add('in-progress');
+                    xhr.send(data);
+                }
+            },
+            _onError: function (e) {
+                root = this;
+                root.valueSearchAlert = true;
+                root.valueSearchAlert = e.detail.response.status;
+                this.async(function () {
+                    root.valueSearchAlert = false;
+                }, 5000);
+            },
+            _addCondition: function () {
+                root = this;
+                if (document.querySelector('#valueSearchDuration').value && (root.addCondTags.length < 3)) {
+                    root.addCondTags.push(root.addCondTags.length + 1);
+                    root.addConditionalTags = [];
+                    root.addConditionalTags = root.addCondTags;
+                }
+            },
+            removeCondition: function () {
+                root = this;
+                if (root.addConditionalTags.length > 0) {
+                    root.addCondTags.pop();
+                    root.addConditionalTags = [];
+                    root.addConditionalTags = root.addCondTags;
+                }
+                else {
+                    root.addConditionalTags = 0;
+                }
+            },
+            _timezoneConverter: function (UNIX_timestamp) {
+                var a = new Date(UNIX_timestamp);
+                var year = a.getFullYear();
+                var month = a.getMonth() + 1;
+                var date = a.getDate();
+                var hour = a.getHours();
+                var min = a.getMinutes();
+                var sec = a.getSeconds();
+                var time = year + '-' + month + '-' + date + ' ' + hour + ':' + min;
+                return time;
+            },
+            _showTrend: function (e) {
+                root = this;
+                id = e.currentTarget.dataset.id;
+                var list = document.querySelectorAll('#vbsResults li');
+                for (var i = 0; i < list.length; i++) {
+                    list[i].style.borderLeft = '';
+                }
+                root.colorCode = this._getRandomRolor();
+                root.startDate = root.endDateRange;
+                root.endDate = root.startDateRange;
+                var endDate = (root.ResultendDate);
+                var startDate = (root.ResultstartDate);
+                root.minRange = Number(e.target.dataset.starttimestamp);
+                root.maxRange = Number(e.target.dataset.endtimestamp);
+                root.Range = Number(e.target.dataset.intervaldiff);
+                root._getTrends(root.endDate, root.startDate, root.searchedTagValue);
+
+
+                document.getElementById(id).style.borderLeft = '2px solid ' + root.colorCode;
+
+
+            },
+            _sortList: function (data) {
+                if (data) {
+                    var list = data.data;
+                    return list.sort((a, b) => (a.time_difference > b.time_difference) ? -1 : 1);
+                }
+            },
+            _getRandomRolor: function () {
+                var hexCode = '#000'.replace(/0/g, f => '0369cf'[Math.random() * 6 | 0]);
+                if (hexCode == '#fff' || hexCode == '#FFF') {
+                    return this._getRandomRolor();
+                }
+                else {
+                    return hexCode;
+                }
+            },
+
+        });
+    </script>
+
+</dom-module>

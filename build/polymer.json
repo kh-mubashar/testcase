@@ -1,0 +1,69 @@
+{
+  "entrypoint": "public\\index.html",
+  "shell": "public\\elements\\app-shell.html",
+  "fragments": [
+    "public/elements/view-aggregated-tag.html",
+    "public/elements/view-dashboard.html",
+    "public/elements/view-derived-tags.html",
+    "public/elements/view-not-found.html",
+    "public/elements/view-trend-analysis.html",
+    "public/elements/view-value-based-search.html",
+    "public/elements/view-similarity-based-search.html",
+    "public/elements/view-upload-csv.html",
+    "public/elements/view-alerts.html",
+    "public/elements/view-fingerprint.html",
+    "public/elements/view-edit-fingerprint.html",
+    "public/elements/view-add-fingerprint.html",
+    "public/elements/view-opc-ua.html",
+    "public/elements/view-tag-management.html",
+    "public/elements/view-case.html"
+  ],
+  "sources": [
+    "server/**/*",
+    "public/favicon.*",
+    "public/elements/**/*",
+    "public/images/**/*",
+    "public/highcharts/**/*",
+    "public/datatable/**/*",
+    "public/*.html",
+    "manifest.json",
+    "package.json",
+    "public/index.html",
+    "public/elements/app-shell.html",
+    "public/elements/view-aggregated-tag.html",
+    "public/elements/view-dashboard.html",
+    "public/elements/view-derived-tags.html",
+    "public/elements/view-not-found.html",
+    "public/elements/view-trend-analysis.html",
+    "public/elements/view-value-based-search.html",
+    "public/elements/view-similarity-based-search.html",
+    "public/elements/view-upload-csv.html",
+    "public/elements/view-alerts.html",
+    "public/elements/view-fingerprint.html",
+    "public/elements/view-edit-fingerprint.html",
+    "public/elements/view-add-fingerprint.html",
+    "public/elements/view-opc-ua.html",
+    "public/elements/view-tag-management.html",
+    "public/elements/view-case.html"
+  ],
+  "extraDependencies": [
+    "bower_components/webcomponentsjs/*.js",
+    "public/bower_components/webcomponentsjs/*.min.js",
+    "public/bower_components/jquery/dist/jquery.min.js",
+    "public/bower_components/bootstrap/dist/css/bootstrap.min.css",
+    "public/bower_components/bootstrap/dist/js/bootstrap.bundle.min.js",
+    "public/bower_components/fontawesome/webfonts/*",
+    "public/bower_components/fontawesome/css/all.min.css"
+  ],
+  "builds": [
+    {
+      "name": "iridium",
+      "js": {
+        "compile": true,
+        "minify": true
+      },
+      "bundle": true
+    }
+  ],
+  "moduleResolution": "node"
+}

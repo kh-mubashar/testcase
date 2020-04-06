@@ -1,0 +1,428 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="case-detail">
+
+    <template>
+        <style>
+            .detail-container {
+                overflow-y: auto;
+                height: calc(100vh - 3.5rem);
+            }
+
+            .type-red {
+                color: #e80000
+            }
+
+            .type-orange {
+                color: orange
+            }
+
+            .type-green {
+                color: #007900
+            }
+
+            .alertGrey {
+                background: grey;
+                color: #fff;
+            }
+
+            .alertRed {
+                background: #e80000;
+                color: #fff;
+            }
+
+            .alertYelllow {
+                background: rgb(251, 255, 18);
+            }
+
+            .alertOrange {
+                background: #FFC312;
+            }
+
+            .alertGreen {
+                background: #007900;
+                color: #fff;
+            }
+        </style>
+        <template is="dom-if" if="{{itemData}}">
+            <div class="detail-container">
+
+                <div class="p-4 bg-secondary text-light">
+                    <div class="w-100 h5"><i class$="mr-2 fas fa-circle type-{{itemData.type}}"></i> {{itemData.title}}
+                    </div>
+
+                    <div class="d-flex">
+                        <div class="flex-grow-1">
+                            <div class="">{{itemData.subtitle}}</div>
+                            <div class="">{{itemData.desc}}</div>
+                            <div class="small">CASE ID: {{itemData.id}}</div>
+                        </div>
+                        <!-- <div class="flex-grow-1 text-right">
+                            <div class="">Optimization Opportunity: {{itemData.oppturinity}} Parameter</div>
+                            <div class="">{{itemData.status}}</div>
+                        </div> -->
+                    </div>
+                </div>
+
+
+                <div class="p-4 bg-light">
+                    <div class="w-100 h6">Case Number {{itemData.id}}</div>
+
+                    <div class="d-flex text-black-50">
+                        <div class="flex-grow-1">
+                            <div class="small">Case Source: Energy Per Ton NH3 Difference</div>
+                        </div>
+                        <div class="flex-grow-1 text-right">
+                            <!-- <div class="small">Finger Print (FP) Owner : Sheryar Junaid</div> -->
+                        </div>
+                    </div>
+
+                    <div class="d-flex mt-3">
+                        <div class="flex-grow-1">
+                            <div class="">Instance A Occurance : {{itemData.dataTable.0.timestampStart}}</div>
+                            <div class="">Instance B Occurance : {{itemData.dataTable.1.timestampStart}}</div>
+                        </div>
+                        <div class="text-right align-items-center d-flex">
+                            <!-- <button class="btn btn-info" on-tap="_gotoTrend">Analysis</button> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-white">
+                    <div class="w-100 h6">Case History</div>
+                    <table class="table table-striped table-borderless table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col"> </th>
+                                <th scope="col">Instance A</th>
+                                <th scope="col">Instance B</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template is="dom-if" if="{{_checkID(itemData.id,2)}}">
+                                <tr>
+                                    <th scope="row">Timestamp </th>
+                                    <td class="alertGrey">{{itemData.dataTable.0.timestampStart}}</td>
+                                    <td class="alertGrey">{{itemData.dataTable.1.timestampStart}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Total Gas Input (MMBTU) </th>
+                                    <td class="alertOrange">{{itemData.dataTable.0.TotalGasInput}}</td>
+                                    <td class="alertOrange">{{itemData.dataTable.1.TotalGasInput}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Total NG Flow 7A10FY0005 </th>
+                                    <td>{{itemData.dataTable.0.TotalNGFlow}}</td>
+                                    <td>{{itemData.dataTable.1.TotalNGFlow}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Ammonia Production 7A50FI6010 </th>
+                                    <td>{{itemData.dataTable.0.AmmoniaProduction}}</td>
+                                    <td>{{itemData.dataTable.1.AmmoniaProduction}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Energy/Ton NH3 (Gcal/Ton) </th>
+                                    <td class="alertGreen">{{itemData.dataTable.0.EnergyTonNH3}}</td>
+                                    <td class="alertRed">{{itemData.dataTable.1.EnergyTonNH3}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Total Fuel Flow 7A10FY1168 </th>
+                                    <td>{{itemData.dataTable.0.TotalFuelFlow}}</td>
+                                    <td>{{itemData.dataTable.1.TotalFuelFlow}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Feed Gas Flow 7A10FY1152 </th>
+                                    <td>{{itemData.dataTable.0.FeedGasFlow}}</td>
+                                    <td>{{itemData.dataTable.1.FeedGasFlow}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Fuel flow (Calculated) </th>
+                                    <td>{{itemData.dataTable.0.Fuelflow}}</td>
+                                    <td>{{itemData.dataTable.1.Fuelflow}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Methane 7A10AI1001A </th>
+                                    <td>{{itemData.dataTable.0.Methane}}</td>
+                                    <td>{{itemData.dataTable.1.Methane}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Ethane 7A10AI1001B </th>
+                                    <td>{{itemData.dataTable.0.Ethane}}</td>
+                                    <td>{{itemData.dataTable.1.Ethane}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Propane 7A10AI1001C </th>
+                                    <td>{{itemData.dataTable.0.Propane}}</td>
+                                    <td>{{itemData.dataTable.1.Propane}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Butane 7A10AI1001D </th>
+                                    <td>{{itemData.dataTable.0.Butane}}</td>
+                                    <td>{{itemData.dataTable.1.Butane}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Pentane 7A10AI1001E </th>
+                                    <td>{{itemData.dataTable.0.Pentane}}</td>
+                                    <td>{{itemData.dataTable.1.Pentane}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Carbon Dioxide 7A10AI1001F </th>
+                                    <td>{{itemData.dataTable.0.CarbonDioxide}}</td>
+                                    <td>{{itemData.dataTable.1.CarbonDioxide}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Nitrogen 7A10AI1001G </th>
+                                    <td>{{itemData.dataTable.0.Nitrogen}}</td>
+                                    <td>{{itemData.dataTable.1.Nitrogen}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">S/C Ratio 7A10FFI1155C </th>
+                                    <td class="alertGreen">{{itemData.dataTable.0.SCRatio}}</td>
+                                    <td class="alertRed">{{itemData.dataTable.1.SCRatio}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Process Steam Flow 7A10FY1153A </th>
+                                    <td>{{itemData.dataTable.0.ProcessSteamFlow}}</td>
+                                    <td>{{itemData.dataTable.1.ProcessSteamFlow}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Primary Reformer OL Temp 7A10TIC1209 </th>
+                                    <td>{{itemData.dataTable.0.PrimaryReformerOLTemp}}</td>
+                                    <td>{{itemData.dataTable.1.PrimaryReformerOLTemp}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Primary Reformer Methane Slip 7A10AI1158 </th>
+                                    <td>{{itemData.dataTable.0.PrimaryReformerMethaneSlip}}</td>
+                                    <td>{{itemData.dataTable.1.PrimaryReformerMethaneSlip}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Air Flow 7A10FIC1201 </th>
+                                    <td>{{itemData.dataTable.0.AirFlow}}</td>
+                                    <td>{{itemData.dataTable.1.AirFlow}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Secondary Reformer O/L Temp 7A10TI1231 </th>
+                                    <td class="alertGreen">{{itemData.dataTable.0.SecondaryReformerOLTemp}}</td>
+                                    <td class="alertRed">{{itemData.dataTable.1.SecondaryReformerOLTemp}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Secondary Reformer Methane Slip 7A10AT1154 </th>
+                                    <td class="alertGreen">{{itemData.dataTable.0.SecondaryReformerMethaneSlip}}</td>
+                                    <td class="alertRed">{{itemData.dataTable.1.SecondaryReformerMethaneSlip}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">H/N Ratio </th>
+                                    <td>{{itemData.dataTable.0.HNRatio}}</td>
+                                    <td>{{itemData.dataTable.1.HNRatio}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Loop Pressure 7A50PI5024 </th>
+                                    <td class="alertGreen">{{itemData.dataTable.0.LoopPressure}}</td>
+                                    <td class="alertRed">{{itemData.dataTable.1.LoopPressure}}</td>
+                                </tr>
+                            </template>
+                            <template is="dom-if" if="{{_checkID(itemData.id,1)}}">
+                                <tr>
+                                    <th scope="row">Timestamp </th>
+                                    <td class="alertGrey">{{itemData.dataTable.0.timestampStart}}</td>
+                                    <td class="alertGrey">{{itemData.dataTable.1.timestampStart}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Total Gas Input (MMBTU) </th>
+                                    <td class="alertOrange">{{itemData.dataTable.0.TotalGasInput}}</td>
+                                    <td class="alertOrange">{{itemData.dataTable.1.TotalGasInput}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Total NG Flow 7A10FY0005 </th>
+                                    <td>{{itemData.dataTable.0.TotalNGFlow}}</td>
+                                    <td>{{itemData.dataTable.1.TotalNGFlow}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Ammonia Production 7A50FI6010 </th>
+                                    <td>{{itemData.dataTable.0.AmmoniaProduction}}</td>
+                                    <td>{{itemData.dataTable.1.AmmoniaProduction}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Energy/Ton NH3 (Gcal/Ton) </th>
+                                    <td class="alertGreen">{{itemData.dataTable.0.EnergyTonNH3}}</td>
+                                    <td class="alertRed">{{itemData.dataTable.1.EnergyTonNH3}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Total Fuel Flow 7A10FY1168 </th>
+                                    <td>{{itemData.dataTable.0.TotalFuelFlow}}</td>
+                                    <td>{{itemData.dataTable.1.TotalFuelFlow}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Feed Gas Flow 7A10FY1152 </th>
+                                    <td>{{itemData.dataTable.0.FeedGasFlow}}</td>
+                                    <td>{{itemData.dataTable.1.FeedGasFlow}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Fuel flow (Calculated) </th>
+                                    <td>{{itemData.dataTable.0.Fuelflow}}</td>
+                                    <td>{{itemData.dataTable.1.Fuelflow}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Methane 7A10AI1001A </th>
+                                    <td>{{itemData.dataTable.0.Methane}}</td>
+                                    <td>{{itemData.dataTable.1.Methane}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Ethane 7A10AI1001B </th>
+                                    <td>{{itemData.dataTable.0.Ethane}}</td>
+                                    <td>{{itemData.dataTable.1.Ethane}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Propane 7A10AI1001C </th>
+                                    <td>{{itemData.dataTable.0.Propane}}</td>
+                                    <td>{{itemData.dataTable.1.Propane}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Butane 7A10AI1001D </th>
+                                    <td>{{itemData.dataTable.0.Butane}}</td>
+                                    <td>{{itemData.dataTable.1.Butane}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Pentane 7A10AI1001E </th>
+                                    <td>{{itemData.dataTable.0.Pentane}}</td>
+                                    <td>{{itemData.dataTable.1.Pentane}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Carbon Dioxide 7A10AI1001F </th>
+                                    <td>{{itemData.dataTable.0.CarbonDioxide}}</td>
+                                    <td>{{itemData.dataTable.1.CarbonDioxide}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Nitrogen 7A10AI1001G </th>
+                                    <td>{{itemData.dataTable.0.Nitrogen}}</td>
+                                    <td>{{itemData.dataTable.1.Nitrogen}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">S/C Ratio 7A10FFI1155C </th>
+                                    <td class="alertGreen">{{itemData.dataTable.0.SCRatio}}</td>
+                                    <td class="alertRed">{{itemData.dataTable.1.SCRatio}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Process Steam Flow 7A10FY1153A </th>
+                                    <td>{{itemData.dataTable.0.ProcessSteamFlow}}</td>
+                                    <td>{{itemData.dataTable.1.ProcessSteamFlow}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Primary Reformer OL Temp 7A10TIC1209 </th>
+                                    <td>{{itemData.dataTable.0.PrimaryReformerOLTemp}}</td>
+                                    <td>{{itemData.dataTable.1.PrimaryReformerOLTemp}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Primary Reformer Methane Slip 7A10AI1158 </th>
+                                    <td>{{itemData.dataTable.0.PrimaryReformerMethaneSlip}}</td>
+                                    <td>{{itemData.dataTable.1.PrimaryReformerMethaneSlip}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Air Flow 7A10FIC1201 </th>
+                                    <td>{{itemData.dataTable.0.AirFlow}}</td>
+                                    <td>{{itemData.dataTable.1.AirFlow}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Secondary Reformer O/L Temp 7A10TI1231 </th>
+                                    <td class="alertGreen">{{itemData.dataTable.0.SecondaryReformerOLTemp}}</td>
+                                    <td class="alertRed">{{itemData.dataTable.1.SecondaryReformerOLTemp}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Secondary Reformer Methane Slip 7A10AT1154 </th>
+                                    <td class="alertGreen">{{itemData.dataTable.0.SecondaryReformerMethaneSlip}}</td>
+                                    <td class="alertRed">{{itemData.dataTable.1.SecondaryReformerMethaneSlip}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">H/N Ratio </th>
+                                    <td>{{itemData.dataTable.0.HNRatio}}</td>
+                                    <td>{{itemData.dataTable.1.HNRatio}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Loop Pressure 7A50PI5024 </th>
+                                    <td class="alertGreen">{{itemData.dataTable.0.LoopPressure}}</td>
+                                    <td class="alertRed">{{itemData.dataTable.1.LoopPressure}}</td>
+                                </tr>
+                            </template>
+
+                        </tbody>
+                    </table>
+                </div>
+
+
+
+                <div class="px-4 bg-white mb-2">
+
+                    <!-- <div class="w-100 h6">Case Notes</div>
+
+                    <div class="border rounded pt-2 px-3 bg-light">
+                        <div class="h6 mt-1">Thursday, 4 April 2019</div>
+                        <p class="small">{{itemData.caseStudy}}.</p>
+                    </div> -->
+
+                    <!-- <div class="border border-danger rounded mt-2 pt-2 px-3 bg-light">
+                        <div class="w-100 h6">Disclaimer Note</div>
+                        <div class="h6 mt-1">Thursday, 4 April 2019</div>
+                        <p class="small">Due to missing data, the following tags have not been considered for this
+                            analysis
+                            <ul>
+                                <li>Feed Composition 7A10AT1001</li>
+                                <li>S/C Ratio 7A10FFI1155A</li>
+                                <li>Off Gas Flow 7A70FY7151</li>
+                                <li>G/A Ratio 7A10FA1156C</li>
+                                <li>Process Steam Flow 7A10FY1153A</li>
+                            </ul>
+                        </p>
+                    </div> -->
+                    <!-- <div class="form-group mt-3">
+                        <textarea class="form-control"></textarea>
+                    </div>
+
+                    <div class="form-group text-right">
+                        <button class="btn btn-info">Submit</button>
+                    </div> -->
+
+                </div>
+
+            </div>
+        </template>
+    </template>
+
+    <script>
+        Polymer({
+            is: "case-detail",
+
+            created: function () {
+                /* console.log(this.localName + '#' + this.id + ' was created'); */
+                document.documentElement.classList.remove('in-progress');
+            },
+
+            ready: function () {
+                /* console.log(this.localName + '#' + this.id + ' has local DOM initialized'); */
+            },
+
+            attached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was attached'); */
+            },
+
+            detached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was detached'); */
+            },
+
+            attributeChanged: function (name, type) {
+                /* console.log(this.localName + '#' + this.id + ' attribute ' + name +
+                    ' was changed to ' + this.getAttribute(name)); */
+            },
+            _gotoTrend: function () {
+                window.location.hash = '#/trend-analysis/tag-search';
+            },
+            _checkID: function (ID, defaultID) {
+                if (ID == defaultID) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+        });
+    </script>
+
+</dom-module>

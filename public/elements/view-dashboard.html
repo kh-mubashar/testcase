@@ -1,0 +1,55 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="dashboard-graph/dashboard-graph.html">
+
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="global-loader/global-loader.html">
+
+<dom-module id="view-dashboard">
+
+    <template>
+        <global-loader>
+            <iron-ajax auto url="/getTagList" last-response="{{tagDataList}}"></iron-ajax>
+        </global-loader>
+
+        <div class="container-fuild bg-light min-vh-100">
+            <div class="row no-gutters">
+                <template is="dom-repeat" items="{{tagDataList}}">
+                    <div class="col col-12 col-sm-6 col-lg-4 col-xl-3">
+                        <dashboard-graph graph-id="{{item.tag_id}}" graph-name="{{item.tag_name}}"></dashboard-graph>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        Polymer({
+            is: "view-dashboard",
+
+            properties: {},
+
+            created: function () {
+                /* console.log(this.localName + '#' + this.id + ' was created'); */
+                document.documentElement.classList.remove('in-progress');
+            },
+
+            ready: function () {
+                /* console.log(this.localName + '#' + this.id + ' has local DOM initialized'); */
+            },
+
+            attached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was attached'); */
+            },
+
+            detached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was detached'); */
+            },
+
+            attributeChanged: function (name, type) {
+                /* console.log(this.localName + '#' + this.id + ' attribute ' + name +
+                    ' was changed to ' + this.getAttribute(name)); */
+            }
+        });
+    </script>
+
+</dom-module>

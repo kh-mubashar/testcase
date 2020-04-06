@@ -1,0 +1,34 @@
+{
+  "name": "feo-mvp1",
+  "version": "1.0.0",
+  "description": "Fertilizer Enterprise Optimizer",
+  "main": "server/app.js",
+  "scripts": {
+    "start": "node server/app.js",
+    "dev": "nodemon server/app.js"
+  },
+  "keywords": [
+    "FEO",
+    "Fertilizer",
+    "Enterprise",
+    "Optimizer"
+  ],
+  "author": "Engro Digital",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "bootstrap": "^4.2.1",
+    "compression": "^1.7.3",
+    "connect-redis": "^3.4.0",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.16.4",
+    "express-session": "^1.15.6",
+    "fs": "0.0.1-security",
+    "helmet": "^3.15.0",
+    "moment": "^2.24.0",
+    "request": "^2.88.0",
+    "serve-favicon": "^2.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.9"
+  }
+}

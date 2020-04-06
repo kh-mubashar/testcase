@@ -1,0 +1,251 @@
+<dom-module id="view-aggregated-tag">
+
+    <template>
+        <style>
+            .nav-link.active {
+                background: #dee2e6;
+            }
+
+            ::content .aggregate-tag-container {
+                overflow-y: auto;
+                background: #dee2e6;
+            }
+
+            @media (max-width: 575.98px) {
+                ::content .aggregate-tag-container {
+                    width: 100% !important;
+                }
+            }
+
+            @media (max-width: 1199.98px) {
+                ::content .aggregate-tag-container {
+                    width: 340px !important;
+                }
+            }
+
+            .searchResult {
+                position: absolute;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                z-index: 1;
+            }
+
+            .searchResult .list-group .list-group-item {
+                cursor: pointer !important;
+            }
+
+            .searchResult .list-group .list-group-item div {
+                word-wrap: break-word;
+            }
+
+            .fa-tags {
+                width: 16px;
+            }
+
+            .fa-info-circle {
+                outline-color: transparent;
+                text-decoration: none;
+                color: #343a40;
+                cursor: pointer;
+                font-size: 16px;
+            }
+
+            ::content html {
+                height: 0 !important;
+            }
+
+            .fa-link {
+                transform: rotate(90deg);
+                font-size: 9px;
+                margin-top: 12px;
+                margin-left: -5px;
+            }
+        </style>
+        <div class="container-fluid h-100 container-with-sidebar">
+            <div class="d-flex h-100">
+
+                <nav class="bg-light flex-grow-1 flex-lg-grow-0 sidebar position-fixed h-100 text-center border-right">
+                    <ul class="sub-nav nav flex-lg-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/data-management/upload-csv" data-toggle="tooltip" data-placement="right" title="Upload CSV">
+                                <i class="fas fa-upload"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/data-management/derived-tags" data-toggle="tooltip" data-placement="right" title="Derived Tags">
+                                <i class="fas fa-tags"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 active" href="#/data-management/aggregated-tag" data-toggle="tooltip" data-placement="right" title="Aggregated Tag">
+                                <i class="fas fa-tag"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/data-management/opc-ua" data-toggle="tooltip" data-placement="right" title="OPC UA">
+                                <i class="fas fa-satellite-dish"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/data-management/tag-management" data-toggle="tooltip" data-placement="right" title="Tag Management">
+                                <i class="far fa-list-alt"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="aggregate-tag-container  w-25">
+                    <div class=" flex-column px-3 pt-2   border-right">
+                        <div class="lead pb-2 d-flex justify-content-between  border-bottom border-light mb-2">
+                            <span><strong>Aggregated Tags</strong></span>
+
+                            <!-- <a href="JavaScript:(0);" title="Aggregated Tags" data-toggle="popover" data-html="true"
+                                data-placement="bottom" data-trigger="focus" data-content="Iridium allows the user to aggregate the tag values and smoothen out the trend line. First select the tag that needs to be aggregated; box labeled as 'operator' open the drop down that allows the user to select the aggregation classifier, the tag can be aggregated around the minimum, maximum and average values. The tags can then be grouped across different time frames; this functionality allows the user to collect the tags across minutes, hours, days, weeks, months and even years. 
+Once you have constructed the formula, input the tag name and description to incorporate this tag to the existing list. 
+
+                        "><i class="fas fa-info-circle "></i></a> -->
+                        </div>
+                        <form id="saveAggregationForm" onsubmit="return false">
+                            <div style="position:relative;" class="form-group mb-2">
+                                <label class="col-form-label py-1" for="aggregatedTag">Tag to
+                                    Aggregate</label>
+                                <input type="text" required="" autocomplete="off" placeholder="Search tag" class="form-control" id="aggregatedTag" name="aggregatedTag">
+                                <template is="dom-if" if="{{tagSearchResult}}">
+                                    <div class="searchResult">
+                                        <ul class="list-group">
+                                            <template is="dom-repeat" items="[[tagSearchResult]]" as="tagResults">
+                                                <li on-click="_addTag" data-orgtag$="[[tagResults.tag_id]]" data-tagselected$="[[tagResults.tag_name]]" class="border-none  list-group-item px-2 py-1 border-top rounded-0">
+                                                    <div class="h6 mb-0">[[tagResults.tag_name]]</div>
+                                                    <div class="text-black-50 mb-0 text-wrap">[[tagResults.description]]
+                                                    </div>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="col-form-label py-1" for="operator">Operator</label>
+                                <select required="" class="form-control" name="operator" id="operator">
+                                    <option>MIN</option>
+                                    <option>AVG</option>
+                                    <option>MAX</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label for="aggregationDuration" class="col-form-label py-1">Aggregation per</label>
+                                <div class="d-flex justify-content-between">
+                                    <input required="" type="number" min="1" onkeypress="return event.charCode >= 48" class="form-control mr-1 col-md-6" name="aggregationDuration" id="aggregationDuration">
+                                    <select required="" class="form-control text-capitalize col-md-6" name="aggregationTimeFrame" id="aggregationTimeFrame">
+                                        <option>minute</option>
+                                        <option>hour</option>
+                                        <option>day</option>
+                                        <option>week</option>
+                                        <option>month</option>
+                                        <option>year</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="col-form-label py-1" for="aggregationName">Name</label>
+                                <input required="" type="text" class="form-control" id="aggregationName" pattern="^[a-zA-Z0-9_]*$" name="aggregationName">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label class="col-form-label py-1" for="aggregationDescription">Description</label>
+                                <textarea required="" type="text" class="form-control" id="aggregationDescription" name="aggregationDescription"></textarea>
+                            </div>
+                            <template is="dom-if" if="[[aggregationAlert]]">
+                                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                    <span id="aggregationAlert">[[aggregationAlert]]</span>
+                                </div>
+                            </template>
+                            <div class="d-flex flex-row">
+                                <button type="button" on-click="_clearForm" class="btn btn-secondary btn-sm btn-block mr-1 mt-2">Cancel</button>
+                                <input type="submit" class="btn btn-primary btn-sm btn-block ml-1" on-click="_saveAggregation" value="Save">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <main role="main" class="p-3 pb-0 w-75 flex-grow-1">
+                    <div class="container-fluid">
+                        <div class="row ">
+                            <div class="px-3  rounded text-center mx-auto">
+                                <div class="lead pb-4"><strong>Important Instruction</strong></div>
+                                <div class="row no-gutters border mb-3 rounded overflow-hidden ">
+                                    <div class="col p-2 d-flex flex-column position-static text-right">
+                                        <div class="mb-1 text-muted">Step 1</div>
+                                        <p class="card-text mb-auto ">This is a wider card with supporting text
+                                            below as a natural lead-in to
+                                            additional content.</p>
+                                    </div>
+                                    <div class="col-auto d-none d-lg-block">
+                                        <img id="filePreview" class="img-fluid " src="/public/images/7.PNG">
+                                    </div>
+                                </div>
+                                <div class="row no-gutters border mb-3 rounded overflow-hidden text-left">
+                                    <div class="col-auto d-none d-lg-block">
+                                        <img id="filePreview" class="img-fluid " src="/public/images/8.PNG">
+                                    </div>
+                                    <div class="col p-2 d-flex flex-column position-static">
+                                        <div class="mb-1 text-muted">Step 2</div>
+                                        <p class="card-text mb-auto ">This is a wider card with supporting text
+                                            below as a natural lead-in to
+                                            additional content.</p>
+                                    </div>
+                                </div>
+                                <div class="row no-gutters border mb-3 rounded overflow-hidden">
+                                    <div class="col p-2 d-flex flex-column position-static text-right">
+
+                                        <div class="mb-1 text-muted">Step 3</div>
+                                        <p class="card-text mb-auto ">This is a wider card with supporting text
+                                            below as a natural lead-in to
+                                            additional content.</p>
+                                    </div>
+                                    <div class="col-auto d-none d-lg-block">
+                                        <img id="filePreview" class="img-fluid " src="/public/images/9.PNG">
+                                    </div>
+                                </div>
+                                <div class="row no-gutters border rounded overflow-hidden text-left">
+                                    <div class="col-auto d-none d-lg-block">
+                                        <img id="filePreview" class="img-fluid " src="/public/images/3.PNG">
+                                    </div>
+                                    <div class="col p-2 d-flex flex-column position-static">
+                                        <div class="mb-1 text-muted">Step 4</div>
+                                        <p class="card-text mb-auto ">This is a wider card with supporting text
+                                            below as a natural lead-in to
+                                            additional content.</p>
+                                    </div>
+                                </div>
+                                <!-- <div class="row no-gutters border  rounded overflow-hidden ">
+
+                                    <div class="col p-2 d-flex flex-column position-static text-right">
+                                        <div class="mb-1 text-muted">Step 5</div>
+                                        <p class="card-text mb-auto ">This is a wider card with supporting text
+                                            below as a natural lead-in to
+                                            additional content.</p>
+                                    </div>
+                                    <div class="col-auto d-none d-lg-block">
+                                        <img id="filePreview" class="img-fluid " src="/public/images/4.PNG">
+                                    </div>
+                                </div> -->
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+
+        <global-loader>
+            <iron-ajax auto="" id="e_searchTag" url="/getTagList" last-response="{{tagDataList}}" on-response="_onResponse_searchTag" on-error="_onError_searchTag"></iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax id="e_aggregateTag" url="/aggregateTag/[[tagName]]/[[aggregatedTagName]]/[[aggregationType]]/[[aggregationInterval]]/[[aggregationUnit]]/[[aggregationDescription]]/[[aggregatedTagId]]/[[organizationId]]" last-response="{{aggregateTag}}" on-response="_onResponse_aggregateTag" on-error="_onError_aggregateTag"></iron-ajax>
+        </global-loader>
+
+    </template>
+
+    <script>Polymer({is:"view-aggregated-tag",attached:function attached(){this.async(function(){$("[data-toggle=\"tooltip\"]").tooltip();$("[data-toggle=\"popover\"]").popover()})},detached:function detached(){},created:function created(){document.documentElement.classList.remove("in-progress")},ready:function ready(){},attributeChanged:function attributeChanged(name,type){},_addTag:function _addTag(e){var root=this;root.tagSearchResult=!1;root.$.aggregatedTag.value=e.currentTarget.dataset.tagselected;root.organizationId=window.organization_id.toUpperCase();root.aggregatedTagName=e.currentTarget.dataset.orgtag.toUpperCase()},_onResponse_searchTag:function _onResponse_searchTag(e){var root=this,tagList=e.detail.response;root.$.aggregatedTag.addEventListener("input",function(e){var inputTag=e.target.value.toLowerCase(),filteredTag=tagList.filter(function(arr,key){return-1!=arr.tag_id.toLowerCase().indexOf(inputTag)||-1!=arr.description.toLowerCase().indexOf(inputTag)});root.tagSearchResult=filteredTag})},_clearForm:function _clearForm(){root=this;root.$.saveAggregationForm.reset()},_saveAggregation:function _saveAggregation(e){root=this;for(var elements=root.$.saveAggregationForm.elements,i=0;i<root.tagDataList.length;i++){if(root.$$("#saveAggregationForm").checkValidity()){root.aggregationType=elements[1].value;root.aggregationUnit=elements[2].value;root.aggregationInterval=elements[3].value.toUpperCase();root.aggregatedTagName=elements[4].value.toUpperCase();root.aggregatedTagId=window.organization_id+"_"+elements[4].value;root.aggregationDescription=elements[5].value.toUpperCase();if(root.$.aggregatedTag.value.toUpperCase()===root.tagDataList[i].tag_name){root.tagName=window.organization_id+"_"+elements[0].value.toUpperCase();root.$.e_aggregateTag.generateRequest()}else{root.aggregationAlert="tag not found"}}}},_onResponse_aggregateTag:function _onResponse_aggregateTag(e){root=this;root.$.e_searchTag.generateRequest();root.aggregationAlert=!0;root.aggregationAlert=e.detail.response.status;this.async(function(){root.aggregationAlert=!1},5e3)},_onError_aggregateTag:function _onError_aggregateTag(e){root=this;root.aggregationAlert=!0;root.aggregationAlert=e.detail.response.status}});</script>
+
+</dom-module>

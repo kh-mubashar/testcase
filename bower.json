@@ -1,0 +1,22 @@
+{
+  "name": "feo-mvp1",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "4.2.1",
+    "jquery": "3.3.1",
+    "polymer": "1.9",
+    "fontawesome": "5.6.3",
+    "iron-ajax": "1.4.3",
+    "app-router": "2.7.2",
+    "iron-form": "^2.3.0",
+    "global-var": "^0.1.0",
+    "datatables.net": "^1.10.19",
+    "datatables.net-dt": "^3.2.2"
+  }
+}

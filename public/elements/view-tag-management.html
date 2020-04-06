@@ -1,0 +1,192 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-router/app-router.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="stylesheet" type="text/css" href="../datatable/jquery.dataTables.css">
+<script type="text/javascript" src="../datatable/jquery.dataTables.js"></script>
+<script type="text/javascript" src="../datatable/dataTables.bootstrap4.min.js"></script>
+<dom-module id="view-tag-management">
+
+    <template>
+        <style>
+            .nav-link.active {
+                background: #dee2e6;
+            }
+
+            .fa-tags {
+                width: 16px;
+            }
+
+            .fa-link {
+                transform: rotate(90deg);
+                font-size: 9px;
+                margin-top: 12px;
+                margin-left: -5px;
+            }
+
+            .sidebar {
+                overflow: hidden;
+            }
+
+            ::content .dataTables_wrapper .dataTables_paginate .paginate_button {
+                padding: 0px;
+                border: none !important;
+            }
+
+            ::content .dataTables_length,
+            ::content #example_filter {
+                display: none;
+            }
+
+            ::content .dataTables_info {
+                padding-left: 30px;
+            }
+
+            ::content .dataTables_paginate {
+                padding-right: 30px;
+            }
+        </style>
+        <div class="container-fluid h-100 container-with-sidebar">
+            <div class="d-flex h-100">
+
+                <nav class="bg-light flex-grow-1 flex-lg-grow-0 sidebar position-fixed h-100 text-center border-right">
+                    <ul class="sub-nav nav flex-lg-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/data-management/upload-csv"
+                                data-toggle="tooltip" data-placement="right" title="Upload CSV">
+                                <i class="fas fa-upload"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/data-management/derived-tags"
+                                data-toggle="tooltip" data-placement="right" title="Derived Tags">
+                                <i class="fas fa-tags"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/data-management/aggregated-tag"
+                                data-toggle="tooltip" data-placement="right" title="Aggregated Tag">
+                                <i class="fas fa-tag"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/data-management/opc-ua"
+                                data-toggle="tooltip" data-placement="right" title="OPC UA">
+                                <i class="fas fa-satellite-dish"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 active" href="#/data-management/tag-management"
+                                data-toggle="tooltip" data-placement="right" title="Tag Management">
+                                <i class="far fa-list-alt"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <main role="main" class="container-fluid p-0  h-100" style="overflow-x:hidden;">
+                    <div class="filters-container  p-2 border-bottom">
+                        <div class="d-flex header">
+                            <div class=" py-0 flex-fill lead" for="opcUA"><strong>Tag Management</strong></div>
+                        </div>
+                    </div>
+                    <div class="table-container mt-2 px-3">
+                        <table id="example" class="display compact" style="width:100%;" data-page-length='15'>
+                            <thead>
+                                <tr>
+                                    <!-- <th class="">No #</th> -->
+                                    <th class="text-uppercase">tag name</th>
+                                    <th class="text-uppercase">tag description</th>
+                                    <th class="text-uppercase">Tag category</th>
+                                    <th class="text-uppercase">Last edit date</th>
+                                    <th class="text-uppercase">date range</th>
+                                </tr>
+                                <tr id="filter">
+                                    <!-- <th>No#</th> -->
+                                    <th class="input-filter">tag name</th>
+                                    <th class="input-filter">description</th>
+                                    <th class="input-filter">category</th>
+                                    <th class="input-filter">last edit</th>
+                                    <th class="input-filter">date range</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                <template is="dom-repeat" items="{{tagList}}" as="listItem">
+                                    <tr>
+                                        <!-- <td>{{listItem.id}}</td> -->
+                                        <td>{{listItem.tag_name}}</td>
+                                        <td>{{listItem.tag_description}}</td>
+                                        <td>{{listItem.tag_Category}}</td>
+                                        <td>{{listItem.last_edit_date}}</td>
+                                        <td>{{listItem.date_range}}</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <global-loader>
+            <iron-ajax auto id="getTagManagementData" url="/getTagsDetailForTagManagement" last-response="{{tagList}}"
+                on-response="_onResponse_getTagManagementData" on-error="_onError">
+            </iron-ajax>
+        </global-loader>
+    </template>
+
+    <script>
+        Polymer({
+            is: "view-tag-management",
+            properties: {
+            },
+            created: function () {
+                /* console.log(this.localName + '#' + this.id + ' was created'); */
+                $('html').removeClass('in-progress');
+            },
+            attached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was attached'); */
+                this.async(function () {
+
+                    $('[data-toggle="tooltip"]').tooltip();
+                    $(function () {
+                        $(".dropdown-menu span").click(function () {
+
+                            $(".btn:first-child").text($(this).text());
+                            $(".btn:first-child").val($(this).text());
+                        });
+                    });
+                });
+            },
+            ready: function () {
+                /* console.log(this.localName + '#' + this.id + ' has local DOM initialized'); */
+
+            },
+            _onResponse_getTagManagementData: function (evt) {
+                root = this;
+                $(document).ready(function () {
+                    $('#example thead #filter th').each(function () {
+                        var title = $(this).text();
+                        $(this).html('<input class="rounded" type="text" placeholder="Search ' + title + '" />');
+                    });
+                    var table = $('#example').DataTable({
+                        responsive: true,
+                        "bSortCellsTop": true
+                    });
+                    $.each($('.input-filter', table.table().header()), function () {
+                        var column = table.column($(this).index());
+                        $('input', this).on('keyup change', function () {
+                            if (column.search() !== this.value) {
+                                column
+                                    .search(this.value)
+                                    .draw();
+                            }
+                        });
+                    });
+                });
+
+            }
+        });
+    </script>
+
+</dom-module>

@@ -1,0 +1,64 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="opc-ua-list.html">
+
+
+<dom-module id="view-opc-ua">
+
+    <template>
+        <opc-ua-list list-items='{{listData}}' disable-auto-select="true" on-selected-item-changed="_updateDetails"
+            sort-order="ascending">
+        </opc-ua-list>
+        <global-loader>
+            <iron-ajax auto method="POST" id="getopcUA" url="/getOPCUAInstance" last-response="{{listData}}"
+                on-response="_onResponse_searchTag" on-error="_onError"></iron-ajax>
+        </global-loader>
+    </template>
+
+    <script>
+        Polymer({
+            is: "view-opc-ua",
+
+            properties: {
+                itemData: {
+                    type: Object,
+                    value: function () {
+                        return null
+                    }
+                }
+            },
+
+            created: function () {
+                /* console.log(this.localName + '#' + this.id + ' was created'); */
+                document.documentElement.classList.remove('in-progress');
+            },
+
+            ready: function () {
+                /* console.log(this.localName + '#' + this.id + ' has local DOM initialized'); */
+
+
+            },
+
+            attached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was attached'); */
+            },
+
+            detached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was detached'); */
+            },
+
+            attributeChanged: function (name, type) {
+                /* console.log(this.localName + '#' + this.id + ' attribute ' + name +
+                    ' was changed to ' + this.getAttribute(name)); */
+            },
+
+            _updateDetails: function (e) {
+                var selectedItem = e.target.listItems.find(function (item) {
+                    return parseInt(item.id) === parseInt(e.detail.value);
+                });
+                this.set("itemData", selectedItem);
+            },
+        });
+    </script>
+
+</dom-module>

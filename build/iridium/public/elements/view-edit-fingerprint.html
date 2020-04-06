@@ -1,0 +1,231 @@
+<dom-module id="view-edit-fingerprint">
+
+    <template>
+        <style>
+            .nav-link.active {
+                background: #dee2e6;
+            }
+
+            ::content .value-based-container {
+                overflow-y: auto;
+                background: #dee2e6;
+            }
+
+            @media (max-width: 575.98px) {
+                ::content .value-based-container {
+                    width: 100% !important;
+                }
+            }
+
+            @media (max-width: 1199.98px) {
+                ::content .value-based-container {
+                    width: 340px !important;
+                }
+            }
+
+            .searchResult {
+                position: absolute;
+                top: 38px;
+                left: 0;
+                width: 100%;
+                z-index: 1;
+            }
+
+            .searchResult .list-group .list-group-item {
+                cursor: pointer !important;
+            }
+
+            .searchResult .list-group .list-group-item div {
+                word-wrap: break-word;
+            }
+
+            .form-icon {
+                font-size: 20px;
+                cursor: pointer;
+            }
+
+            .hr-text {
+                line-height: 1em;
+                position: relative;
+                outline: 0;
+                border: 0;
+                color: #343a40;
+                text-align: center;
+                height: 1.5em;
+                margin: 0;
+
+            }
+
+            .hr-text:before {
+                content: '';
+                background: linear-gradient(to right, transparent, #818078, transparent);
+                position: absolute;
+                left: 0;
+                top: 50%;
+                width: 100%;
+                height: 1px;
+            }
+
+            .hr-text:after {
+                content: attr(data-content);
+                position: relative;
+                display: inline-block;
+                padding: 0 .5em;
+                line-height: 1.5em;
+                color: #343a40;
+                background-color: #dee2e6;
+            }
+
+            .TagHeading {
+                font-size: 17px;
+            }
+
+            .TagDesc {
+                font-size: 13px;
+            }
+
+            .fas,
+            .far {
+                cursor: pointer;
+            }
+
+            .alert-info {
+                z-index: 10;
+            }
+
+            ::content .highcharts-legend-item-hidden tspan {
+                fill: #ccc !important;
+            }
+
+            .fa-info-circle {
+                outline-color: transparent;
+                text-decoration: none;
+                color: #343a40;
+                cursor: pointer;
+                font-size: 16px;
+            }
+        </style>
+
+        <div class="container-fluid h-100 container-with-sidebar">
+            <div class="d-flex h-100">
+                <nav class="bg-light sidebar position-fixed h-100 text-center border-right">
+                    <ul class="sub-nav nav flex-lg-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/alerts" data-toggle="tooltip" data-placement="right" title="Alerts">
+                                <i class="fas fa-bell"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 active" href="#/alerts/fingerprint" data-toggle="tooltip" data-placement="right" title="Pattern Match">
+                                <i class="fas fa-fingerprint"></i>
+                            </a>
+                        </li>
+
+                    </ul>
+                </nav>
+
+
+                <div class="value-based-container h-100 w-25">
+                    <div class=" flex-column pt-2  h-100 border-right">
+                        <div class="px-3">
+                            <div class="lead pb-2 d-flex justify-content-between  border-bottom border-light mb-2">
+                                <span><i on-tap="_backTofingerprint" class="far fa-arrow-alt-circle-left"></i><strong>
+                                        Edit
+                                        Alert</strong></span>
+
+                                <a href="JavaScript:(0);" title="Edit Alert" data-toggle="popover" data-html="true" data-placement="bottom" data-trigger="focus" data-content="description to be added"><i class="fas fa-info-circle "></i></a>
+                            </div>
+                            <form id="addAlarmForm" onsubmit="return false">
+                                <div style="position:relative;" class="form-group mb-2 d-flex flex-row">
+                                    <input readonly="" type="text" required="" autocomplete="off" class="form-control" placeholder="Search tag" id="searchedTag" name="searchedTag" value="{{selectedTagAlert.tag_name}}">
+
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="similarityPriority">Priority</label>
+                                    <select required="" class="form-control" value="{{selectedTagAlert.priority}}" name="similarityPriority" on-change="" id="similarityPriority">
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="fingerprintStartDate">Start Date</label>
+                                    <input id="fingerprintStartDate" type="text" class="form-control" name="startDate" value="{{selectedTagAlert.start_date}}">
+                                </div>
+                                <div class="form-group mb-2 mt-2">
+                                    <label for="similarityPercentage" class="col-form-label py-1">Minimum score
+                                        (0%-100%)</label>
+                                    <div class="d-flex justify-content-between">
+                                        <input required="" type="number" min="0" onkeypress="return event.charCode >= 48" max="100" class="form-control" value="{{_matchPercentage(selectedTagAlert.threshold)}}" on-change="" name="similarityPercentage" id="similarityPercentage">
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="alarmName">Name</label>
+                                    <input required="" type="text" class="form-control" id="alarmName" value="{{selectedTagAlert.fp_name}}" name="alarmName">
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="description">Description</label>
+                                    <textarea type="text" value="{{selectedTagAlert.description}}" class="form-control" id="description" name="description"></textarea>
+                                </div>
+                                <div class="custom-control custom-switch mb-2">
+                                    <input type="checkbox" class="custom-control-input" checked="{{selectedTagAlert.status}}" id="addfingerprinttatus">
+                                    <label class="custom-control-label" for="addfingerprinttatus">Active</label>
+                                </div>
+
+                                <div class="custom-control custom-switch mb-2">
+                                    <input type="checkbox" class="custom-control-input" checked="{{selectedTagAlert.email_status}}" on-click="_addAlarmNotificaiton" id="addAlarmNotificaiton">
+                                    <label class="custom-control-label" for="addAlarmNotificaiton">Notification</label>
+                                </div>
+                                <template is="dom-if" if="{{AlarmNotificaiton}}">
+                                    <div id="AlarmNotificaiton" class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="addEmail">Email</label>
+                                        <input type="email" class="form-control" id="addEmail" value="{{selectedTagAlert.email}}" placeholder="Email">
+                                    </div>
+                                </template>
+                                <div class="d-flex flex-row">
+                                    <button type="button" class="btn btn-primary btn-sm col-md-6 mr-1" on-click="_removeFingerPrint">Remove</button>
+                                    <button type="submit" class="btn btn-primary btn-sm col-md-6 ml-1" on-click="_updateFingerPrint">Save</button>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+                <main role="main" class="p-3 pb-0 flex-grow-1">
+                    <template is="dom-if" if="[[trendAlerts]]">
+                        <div style="z-index:10;" class="alert alert-info mb-0 alert-dismissible fade show mb-2" role="alert">
+                            <span id="trendAlerts">[[trendAlerts]]</span>
+                        </div>
+                    </template>
+                    <div class="container-fluid" style="position:relative;">
+                        <div class="row">
+                            <template is="dom-if" if="[[tagTrends]]">
+                                <input id="daterange" type="text" class="form-control" name="datetimes" style="width: 300px;position: absolute;top:15px;right: 5px;z-index: 1">
+                            </template>
+                            <div id="container" class="mt-3" style="width: 100%; height: 85vh;"></div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <global-var name="selectedTagAlert" value="{{selectedTagAlert}}"></global-var>
+
+        <global-loader>
+            <iron-ajax id="e_getTagTrends" last-response="{{tagTrends}}" on-response="_onResponse_getTagTrends" headers="{&quot;Content-Type&quot;: &quot;application/json&quot;,&quot;username&quot;:&quot;administrator&quot;,&quot;password&quot;:&quot;7eRmina7oR&quot;}" handle-as="json" on-error="_onError_getTagTrends">
+            </iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax id="e_removeFingerPrint" url="/removeFingerPrint/{{fingerPrintID}}" last-response="{{tagTrends}}" on-response="_onResponse_removeFingerPrint" handle-as="json" on-error="_onError_removeFingerPrint">
+            </iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="e_updateFingerPrint" handle-as="json" url="/updateFingerPrint" body="{{bodyData}}" content-type="application/json" on-response="_onResponse_updateFingerPrint" on-error="_onError_updateFingerPrint">
+            </iron-ajax>
+        </global-loader>
+    </template>
+
+    <script>Polymer({is:"view-edit-fingerprint",observers:["_selectedTagAlertChange(selectedTagAlert)"],created:function created(){document.documentElement.classList.remove("in-progress")},attached:function attached(){this.async(function(){$("[data-toggle=\"tooltip\"]").tooltip();$("[data-toggle=\"popover\"]").popover()})},_selectedTagAlertChange:function _selectedTagAlertChange(){root=this;console.log("root.selectedTagAlert",root.selectedTagAlert);root._getTrends(root.selectedTagAlert.tag_id,root.selectedTagAlert.timespan_start_date,root.selectedTagAlert.timespan_end_date);root.selectedDateRange[0]=root.selectedTagAlert.pattern_start_date;root.selectedDateRange[root.selectedTagAlert.pattern_values.length-1]=root.selectedTagAlert.pattern_end_date;console.log(root.selectedDateRange[0],"-",root.selectedDateRange[root.selectedDateRange.length-1]);root.dataPattern=root.selectedTagAlert.pattern_values;root.AlarmNotificaiton=root.$.addAlarmNotificaiton.checked},ready:function ready(){root=this;root.searchedTagValue;root.dataPattern=[];root.selectedDateRange=[];root.endDateRange=new Date;root.startDateRange=Date.parse(root.endDateRange)-864e5;root.searchStartDateRange;root.searchEndDateRange;root.seriesData;$(function(){$("input[name=\"startDate\"]").daterangepicker({singleDatePicker:!0,showDropdowns:!0,timePicker:!0,maxDate:moment(),autoUpdateInput:!1,maxYear:parseInt(moment().format("YYYY"),10),locale:{format:"YYYY-M-DD HH:mm:ss"}},function(start,end,label){root.$.fingerprintStartDate.value=start.format("YYYY-MM-DD HH:mm:ss")})})},_timeConverter:function _timeConverter(UNIX_timestamp){function addZero(i){if(10>i){i="0"+i}return i}var a=new Date(UNIX_timestamp),year=a.getFullYear(),month=addZero(a.getMonth()+1),date=addZero(a.getDate()),hour=addZero(a.getHours()),min=addZero(a.getMinutes()),sec=addZero(a.getSeconds()),time=year+"-"+month+"-"+date+" "+hour+":"+min+":"+sec;return time},_getTrends:function _getTrends(tag,start,end){root=this;root.startDateRange=root._timeConverter(start);root.endDateRange=root._timeConverter(end);root.$.e_getTagTrends.url="http://ec2-54-88-0-215.compute-1.amazonaws.com:84/getVisualizationData/"+tag+"/"+this._timeConverter(start)+"/"+this._timeConverter(end);root.$.e_getTagTrends.generateRequest()},_onResponse_getTagTrends:function _onResponse_getTagTrends(e){root.seriesData=e.detail.response.data;$(function(){$("input[name=\"datetimes\"]").daterangepicker({timePicker:!0,showDropdowns:!0,timePicker24Hour:!0,timePickerSeconds:!1,alwaysShowCalendars:!0,maxDate:moment().startOf("hour"),opens:"left",ranges:{Today:[moment(),moment()],Yesterday:[moment().subtract(1,"days"),moment().subtract(1,"days")],"Last 7 Days":[moment().subtract(6,"days"),moment()],"Last 30 Days":[moment().subtract(29,"days"),moment()],"This Month":[moment().startOf("month"),moment().endOf("month")],"Last Month":[moment().subtract(1,"month").startOf("month"),moment().subtract(1,"month").endOf("month")]},startDate:root.startDateRange,endDate:root.endDateRange,locale:{format:"YYYY-M-DD HH:mm:ss"}},function(start,end,label){root.startDateRange=start.format("YYYY-MM-DD HH:mm:ss");root.endDateRange=end.format("YYYY-MM-DD HH:mm:ss");if(root.selectedTagAlert.tag_id){root.$.e_getTagTrends.url="http://ec2-54-88-0-215.compute-1.amazonaws.com:84/getVisualizationData/"+root.selectedTagAlert.tag_id+"/"+start.format("YYYY-MM-DD HH:mm:ss")+"/"+end.format("YYYY-MM-DD HH:mm:ss");root.$.e_getTagTrends.generateRequest();root.dataPattern=null}})});if(e.detail.response.data){var unselectByClick=function unselectByClick(){for(var i=0;i<this.series[0].data.length;i++){root.selectedDateRange=[]}},seriesData=e.detail.response.data;Highcharts.Chart.prototype.unselectAll=function(){for(var i=0;i<this.series[0].data.length;i++){root.selectedDateRange=[]}};;var chart=new Highcharts.Chart({chart:{renderTo:"container",events:{click:unselectByClick,selection:function selection(event){var data=[];chart.unselectAll();chart.xAxis[0].removePlotBand("plot-band");if(0<this.series[0].data.length)for(var i=0,point;i<this.series[0].data.length;i++){point=this.series[0].data[i];if(point.x>event.xAxis[0].min&&point.x<event.xAxis[0].max){data.push(point.y);root.selectedDateRange.push(point.x);this.xAxis[0].addPlotBand({from:root.selectedDateRange[0],to:root.selectedDateRange[root.selectedDateRange.length-1],color:"#F0F0C0",id:"plot-band"})}}else{root.trendAlerts=!0;root.trendAlerts="Select a smaller DataSet";root.async(function(){root.trendAlerts=!1},3e3)}root.dataPattern=[];root.dataPattern=data;for(var j=0;j<root.dataPattern.length;j++){for(var i=0;i<seriesData.length;i++){if(seriesData[i][1]==root.dataPattern[j]){var point=this.series[1].data[i]}}}return!1}},zoomType:"x"},boost:{useGPUTranslations:!0},xAxis:[{gridLineWidth:1,gridLineDashStyle:"solid",type:"datetime",plotBands:[{color:"#bdc3c7",from:new Date(root.selectedTagAlert.pattern_start_date),to:new Date(root.selectedTagAlert.pattern_end_date)}]},{type:"datetime",visible:!1}],yAxis:[{gridLineWidth:0,gridLineDashStyle:"solid",title:{text:""}}],rangeSelector:{enabled:!0,selected:8,inputEnabled:!1,buttonPosition:{align:"left"},labelStyle:{display:"none"},buttons:[{type:"hour",count:0,text:"1h"},{type:"day",count:0,text:"1d"},{type:"week",count:0,text:"1w"},{type:"month",count:1,text:"1m"},{type:"month",count:3,text:"3m"},{type:"month",count:6,text:"6m"},{type:"ytd",text:"YTD"},{type:"year",count:1,text:"1y"},{type:"all",text:"All"}]},legend:{enabled:!0,allButtonsEnabled:!0,borderColor:"#ced4da",borderRadius:"5px",borderWidth:1,labelFormatter:function labelFormatter(){return"<span style=\"fill: "+this.color+"\">"+this.name+"</span>"},symbolPadding:0,symbolWidth:0,symbolRadius:0},title:{text:null,enabled:!1},tooltip:{xDateFormat:"%d/%m/%Y %H:%M:%S",shared:!0},navigator:{enabled:!0,height:60},series:[{name:root.selectedTagAlert.tag_name,data:seriesData,showInNavigator:!0,dataGrouping:{enabled:!1}}]})}else{root.trendAlerts=e.detail.response.status;this.async(function(){root.trendAlerts=!1},5e3)}},_onResponse_searchTag:function _onResponse_searchTag(e){var root=this,tagList=e.detail.response;root.$.searchedTag.addEventListener("input",function(e){var inputTag=e.currentTarget.value.toLowerCase();if(inputTag){var filteredTag=tagList.filter(function(arr,key){return-1!=arr.tag_id.toLowerCase().indexOf(inputTag)||-1!=arr.description.toLowerCase().indexOf(inputTag)});root.tagSearchResult=filteredTag}else{root.tagSearchResult=!1}})},_removeFingerPrint:function _removeFingerPrint(){root=this;root.fingerPrintID=root.selectedTagAlert.fp_id;root.$.e_removeFingerPrint.generateRequest()},_onResponse_updateFingerPrint:function _onResponse_updateFingerPrint(e){root=this;root.trendAlerts=e.detail.response.status;this.async(function(){root.trendAlerts=!1;window.location.href="#/alerts/fingerprint"},5e3)},_onResponse_removeFingerPrint:function _onResponse_removeFingerPrint(e){root=this;root.trendAlerts=e.detail.response.status;this.async(function(){root.trendAlerts=!1;window.location.href="#/alerts/fingerprint"},1e3)},_indentifyExcutionInterval:function _indentifyExcutionInterval(array){if(0==array.length)return null;for(var modeMap={},maxEl=array[0],maxCount=1,i=0,el;i<array.length;i++){el=array[i];if(null==modeMap[el])modeMap[el]=1;else modeMap[el]++;if(modeMap[el]>maxCount){maxEl=el;maxCount=modeMap[el]}}return maxEl},_updateFingerPrint:function _updateFingerPrint(){root=this;var overlay=document.documentElement,checkDiff=(root.selectedDateRange[1]-root.selectedDateRange[0])/6e4;if(checkDiff){var intervalDifference=checkDiff}else{for(var list=[],i=0,diff;30>i;i++){diff=root.tagTrends.data[i+1][0]-root.tagTrends.data[i][0];diff=diff/6e4;list.push(diff)}checkDiff=root._indentifyExcutionInterval(list);var intervalDifference=checkDiff}if(root.$$("#addAlarmForm").checkValidity()){if(root.dataPattern[0]){var bodyData={fp_id:root.selectedTagAlert.fp_id,fp_name:root.$.alarmName.value,description:root.$.description.value,pattern_values:root.dataPattern,pattern_start_date:root._timeConverter(root.selectedDateRange[0]),pattern_end_date:root._timeConverter(root.selectedDateRange[root.selectedDateRange.length-1]),timespan_start_date:root.startDateRange,timespan_end_date:root.endDateRange,insertion_date:root.selectedTagAlert.insertion_date,status:root.$.addfingerprinttatus.checked,execution_interval:intervalDifference,threshold:+root.$.similarityPercentage.value/100,priority:root.$.similarityPriority.value.toLowerCase(),email_status:root.$.addAlarmNotificaiton.checked};if(root.$.addAlarmNotificaiton.checked){bodyData.email=document.getElementById("addEmail").value}else{bodyData.email=root.selectedTagAlert.email}if(""==root.$.fingerprintStartDate.value){bodyData.start_date=null;root.selectedTagAlert.start_date=""}else{bodyData.start_date=root.$.fingerprintStartDate.value}console.log(root.selectedTagAlert.start_date!=root.$.fingerprintStartDate.value+"");console.log(root.selectedTagAlert.pattern_start_date,root._timeConverter(root.selectedDateRange[0])+"");console.log(root.selectedTagAlert.pattern_end_date,root._timeConverter(root.selectedDateRange[root.selectedDateRange.length-1]));console.log(root.selectedTagAlert.threshold,+(root.$.similarityPercentage.value/100));if(root.selectedTagAlert.start_date!=root.$.fingerprintStartDate.value+""||root.selectedTagAlert.pattern_start_date!=root._timeConverter(root.selectedDateRange[0])+""||root.selectedTagAlert.pattern_end_date!=root._timeConverter(root.selectedDateRange[root.selectedDateRange.length-1])+""||root.selectedTagAlert.threshold!=+(root.$.similarityPercentage.value/100)){bodyData.alertsRemovedRequired=!0}else{bodyData.alertsRemovedRequired=!1}root.$.e_updateFingerPrint.body=JSON.stringify(bodyData);root.$.e_updateFingerPrint.generateRequest()}else{root.trendAlerts=!0;root.trendAlerts="Please select a Data Pattern";this.async(function(){root.trendAlerts=!1},3e3)}}},_backTofingerprint:function _backTofingerprint(){window.location.href="#/alerts/fingerprint"},_matchPercentage:function _matchPercentage(value){var match=100*value;return Number.parseFloat(match).toPrecision(3)},_addAlarmNotificaiton:function _addAlarmNotificaiton(){root=this;root.AlarmNotificaiton=root.$.addAlarmNotificaiton.checked;if(root.AlarmNotificaiton){root.AlarmNotificaiton=!0}else{root.AlarmNotificaiton=!1}}});</script>
+
+</dom-module>

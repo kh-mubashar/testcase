@@ -1,0 +1,799 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html" />
+<link rel="import" href="../bower_components/global-var/global-var.html">
+<link rel="import" href="opc-ua-tag-list.html">
+<dom-module id="opc-ua-list">
+
+    <template>
+
+        <style>
+            .list-container {
+                height: calc(100vh - 10rem);
+                overflow-y: auto;
+            }
+
+            .has-search .form-control {
+                padding-left: 2.375rem;
+            }
+
+            .nav-link.active {
+                background: #dee2e6;
+            }
+
+            .has-search .form-control-feedback {
+                position: absolute;
+                z-index: 2;
+                display: block;
+                width: 2.375rem;
+                height: 2.375rem;
+                line-height: 2rem;
+                text-align: center;
+                pointer-events: none;
+                color: #aaa;
+            }
+
+            .type-red {
+                color: #e80000
+            }
+
+            .type-orange {
+                color: orange
+            }
+
+            .type-green {
+                color: #007900
+            }
+
+            .list-group-item.active {
+                background-color: #6c757d;
+                border-color: rgba(0, 0, 0, .125);
+                color: #efefef;
+            }
+
+            .list-group-item.active .text-black-50 {
+                color: rgba(255, 255, 255, .75) !important;
+            }
+
+
+            .list.constrained.detail-active {
+                display: none
+            }
+
+            .detail.list-active {
+                display: none
+            }
+
+            .back-link {
+                display: none
+            }
+
+            .detail.constrained .back-link {
+                display: block
+            }
+
+            .detail.constrained.list-active {
+                display: none
+            }
+
+            ::content .detail.constrained .detail-container {
+                height: auto !important;
+            }
+
+            .detail {
+                width: calc(100% - 25% - 64px);
+            }
+
+            .fa-bell {
+                font-size: 18px;
+            }
+
+            ::content .filters-container {
+                overflow-y: auto;
+                background: #dee2e6;
+            }
+
+
+
+            #sortBy,
+            #sortIcon {
+                cursor: pointer;
+            }
+
+
+            .opcUATagtatus.high,
+            .opcUAtatus.high {
+                color: #d00000;
+            }
+
+            .opcUATagtatus.medium,
+            .opcUAtatus.medium {
+                color: #f2b600;
+            }
+
+            .opcUAtatus,
+            .opcUAtatus.low,
+            .opcUATagtatus,
+            .opcUATagtatus.low {
+                color: #4fbb00;
+            }
+
+            .header {
+                align-items: center;
+            }
+
+            .btn-light {
+                background-color: #dae0e5;
+                border-color: #d3d9df;
+            }
+
+            .fa-link {
+                transform: rotate(90deg);
+                font-size: 9px;
+                margin-top: 12px;
+                margin-left: -5px;
+            }
+
+            ::-webkit-scrollbar {
+                width: 10px;
+                border-radius: 10px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 10px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #555;
+                border-radius: 10px;
+            }
+
+            .fas,
+            .list-group-item-action {
+                cursor: pointer;
+            }
+
+            .sidebar {
+                overflow: hidden;
+            }
+
+            .editPanel {
+                position: absolute;
+                top: 5px;
+                right: 0px;
+            }
+
+            .list-group :first-child {
+                border-top: 0px;
+            }
+
+            .active {
+                background-color: #6c757d;
+                border-color: rgba(0, 0, 0, .125);
+                color: #efefef;
+            }
+        </style>
+
+        <div class="container-fluid h-100">
+
+            <div class="row h-100">
+                <nav class="bg-light  flex-lg-grow-0 sidebar  h-100 text-center border-right">
+                    <ul class="sub-nav nav flex-lg-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/data-management/upload-csv"
+                                data-toggle="tooltip" data-placement="right" title="Upload CSV">
+                                <i class="fas fa-upload"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/data-management/derived-tags"
+                                data-toggle="tooltip" data-placement="right" title="Derived Tags">
+                                <i class="fas fa-tags"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/data-management/aggregated-tag"
+                                data-toggle="tooltip" data-placement="right" title="Aggregated Tag">
+                                <i class="fas fa-tag"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 active" href="#/data-management/opc-ua"
+                                data-toggle="tooltip" data-placement="right" title="OPC UA">
+                                <i class="fas fa-satellite-dish"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/data-management/tag-management"
+                                data-toggle="tooltip" data-placement="right" title="Tag Management">
+                                <i class="far fa-list-alt"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div id="list" class="list w-25  border-right p-0">
+                    <div class="filters-container  p-2 border-bottom">
+                        <div class="d-flex header">
+                            <div class=" py-0 flex-fill lead" for="opcUA"><strong>Data connectivity</strong></div>
+                            <button type="button" on-click="_openPanel" data-opcPanel="addopcUACheck"
+                                class="btn btn-primary btn-sm">
+                                Add OPC
+                            </button>
+                        </div>
+                    </div>
+                    <div class=" px-2 pt-2 border-bottom bg-light">
+                        <div class="form-group has-search my-1 input-group-sm">
+                            <span class="fa fa-search form-control-feedback"></span>
+                            <input type="text" class="form-control" value="{{_query::input}}" placeholder="Search"">
+                        </div>
+
+                        <div class=" form-group d-flex my-1 text-black-50">
+                            <label for="sortBy" class="col-form-label mr-1 form-control-sm">Sort by: </label>
+                            <div class="flex-grow-1">
+                                <select class="form-control form-control-plaintext text-black-50 form-control-sm"
+                                    id="sortBy" on-change="_sortByChange">
+                                    <option value="title">OPC Name</option>
+                                    <option value="URL">URL</option>
+                                    <option value="Description">Description</option>
+                                </select>
+                            </div>
+                            <div id="sortUA" class="ml-1 col-form-label form-control-sm" on-tap="_reverseSort">
+                                <i id="sortIconUA" class="fas fa-arrow-down"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-container position-sticky ">
+                        <ul id="opc_list__body" class="list-group list-group-flush" on-scroll="_updateClass">
+                            <template is="dom-repeat" items="{{listItems}}" as="listItem"
+                                filter="{{_computeFilter(_query)}}" sort="{{_computeSort(sortBy,sortOrder)}}">
+                                <li id$="[[listItem.opcua_name]]" data-listid$="[[index]]" on-tap="_getopcUATag"
+                                    data-opcPanel="opcUACheck" data-opcuaUnit$="{{listItem.opcua_name}}"
+                                    class$="list-group-item   list-group-item-action pointer {{_computeClass(selectedItem,listItem.opcua_name)}}">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <div class="position-absolute">
+                                            <i
+                                                class$="fas fa-circle type-{{listItem.type}} opcUAtatus {{listItem.priority}}"></i>
+                                        </div>
+                                        <div class="text-left pl-4 col-md-12">
+                                            <template is="dom-if" if="{{listItem.opcua_name}}">
+                                                <div class="d-flex align-items-baseline">
+                                                    <div class="title flex-fill">[[index]]: {{listItem.opcua_name}}
+                                                    </div>
+                                                    <i class="fas fa-cog float-right editPanel" data-listid$="[[index]]"
+                                                        on-tap="_editopcUA"></i>
+                                                </div>
+                                            </template>
+                                            <template is="dom-if" if="{{listItem.url}}">
+                                                <small class="subtitle text-black-50">URL:
+                                                    {{listItem.url}}</small>
+                                            </template>
+                                            <template is="dom-if" if="{{listItem.description}}">
+                                                <div class="time small text-black-50">Description :
+                                                    {{listItem.description}}
+                                                </div>
+                                            </template>
+
+                                        </div>
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+                <template is="dom-if" if="[[addopcUACheck]]">
+                    <div class="h-100 w-25 bg-light">
+                        <div class=" flex-column pt-2  h-100 border-right">
+                            <div class="px-3">
+                                <div class="d-flex pb-1 mb-1 header">
+                                    <div class="col-form-label py-0 flex-fill h6" for="opcUA">Add OPC-UA
+                                    </div>
+                                </div>
+                                <hr class="m-0">
+                                <form id="addopcUA" onsubmit="return false">
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="opcName">Name</label>
+                                        <input required type="text" class="form-control" id="opcName"
+                                            onkeypress="return event.charCode >= 48" pattern="[a-zA-Z][a-zA-Z0-9\s_.]*"
+                                            name="opcName" />
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="description">Description</label>
+                                        <textarea required type="text" class="form-control"
+                                            pattern="[a-zA-Z][a-zA-Z0-9\s_.]*" id="description"
+                                            name="description"></textarea>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="opcURL">URL</label>
+                                        <input required type="text" class="form-control" id="opcURL" name="opcURL" />
+                                    </div>
+                                    <template is="dom-if" if="[[addOPCApiAlerts]]">
+                                        <div style="z-index:10;"
+                                            class="alert alert-info mb-0 alert-dismissible fade show mb-2" role="alert">
+                                            <span id="addOPCApiAlerts">[[addOPCApiAlerts]]</span>
+                                        </div>
+                                    </template>
+                                    <div class="d-flex flex-row">
+                                        <button type="reset" data-opcPanel="addopcUACheck"
+                                            class="btn btn-secondary btn-sm col-md-6 mr-1"
+                                            on-click="_cancelPanel">Cancel</button>
+                                        <button type="submit" class="btn btn-primary btn-sm col-md-6"
+                                            on-click="_saveopcUA">Save</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <template is="dom-if" if="[[editopcUACheck]]" restamp>
+                    <div class="h-100 w-25 bg-light">
+                        <div class=" flex-column pt-2  h-100 border-right">
+                            <div class="px-3">
+                                <div class="d-flex pb-1 mb-1 header">
+                                    <div class="col-form-label py-0 flex-fill h6" for="opcUA">Edit OPC-UA
+                                    </div>
+                                </div>
+                                <hr class="m-0">
+                                <form id="editopcUAform" onsubmit="return false">
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="opcName">Name</label>
+                                        <input readonly type="text" class="form-control" id="editopcName"
+                                            value="{{selectedTagAlert.opcua_name}}" name="opcName"
+                                            onkeypress="return event.charCode >= 48"
+                                            pattern="[a-zA-Z][a-zA-Z0-9\s_.]*" />
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="description">Description</label>
+                                        <textarea required type="text" value="{{selectedTagAlert.description}}"
+                                            class="form-control" id="editdescription" pattern="[a-zA-Z][a-zA-Z0-9\s_.]*"
+                                            name="{{selectedTagAlert.description}}"></textarea>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="opcURL">URL</label>
+                                        <input required type="text" class="form-control" id="editopcURL"
+                                            value="{{selectedTagAlert.url}}" name="opcURL" />
+                                    </div>
+                                    <template is="dom-if" if="[[editOPCApiAlerts]]">
+                                        <div style="z-index:10;"
+                                            class="alert alert-info mb-0 alert-dismissible fade show mb-2" role="alert">
+                                            <span id="editOPCApiAlerts">[[editOPCApiAlerts]]</span>
+                                        </div>
+                                    </template>
+                                    <div class="d-flex flex-row  mb-2">
+                                        <button type="reset" data-opcPanel="editopcUACheck"
+                                            class="btn btn-light btn-sm col-md-6 mr-1"
+                                            on-click="_cancelPanel">Cancel</button>
+                                        <button type="button" class="btn btn-secondary btn-sm col-md-6 mr-1"
+                                            on-click="_removeopcUA">Delete</button>
+                                    </div>
+                                    <div class="d-flex flex-row">
+                                        <button type="submit" class="btn btn-primary btn-sm col-md-12 "
+                                            on-click="_updateopcUA">Save</button>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <template is="dom-if" if="[[listUnitItems]]" restamp>
+                    <opc-ua-tag-list class="w-25" list-Unit-Items='{{listUnitItems}}'
+                        list-Selected-Unit='{{selectedUnit}}' disable-auto-select="true" sort-order="ascending">
+                    </opc-ua-tag-list>
+                </template>
+            </div>
+        </div>
+        <global-var name="selectedUATag" value="{{selectedUATag}}"></global-var>
+        <global-var name="selectedTagAlert" value="{{selectedTagAlert}}"></global-var>
+        <global-loader>
+            <iron-ajax method="POST" id="e_addOPCUA" body="{{formData}}"
+                url="/addOPCUAInstance/[[opcName]]/[[opcURL]]/[[description]]" on-response="_onResponse_addOPCUA"
+                on-error="_onError">
+            </iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="e_updateOPCUA"
+                url="/updateOPCUAInstance/[[opcName]]/[[opcURL]]/[[description]]" on-response="_onResponse_updateOPCUA"
+                on-error="_onError">
+            </iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="e_removeOPCUA" url="/deleteOPCUAInstance/[[opcName]]"
+                on-response="_onResponse_removeOPCUA" on-error="_onError">
+            </iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="getOPCUATag" url="/getOPCUATag/{{opcUnit}}"
+                on-response="_onResponse_getOPCUATag" on-error="_onError"></iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="getOPCUAInstance" url="/getOPCUAInstance" last-response="{{listData}}"
+                on-response="_onResponse_getOPCUAInstance" on-error="_onError"></iron-ajax>
+        </global-loader>
+    </template>
+
+    <script>
+        Polymer({
+            is: "opc-ua-list",
+
+            behaviors: [
+                Polymer.IronResizableBehavior
+            ],
+
+            listeners: {
+                "iron-resize": "_calculateBounds"
+            },
+
+            properties: {
+                /**
+                 * Array of items to include in the list. Each item in the array should be an object with:
+                 * - id (used for fetching the details view)
+                 * - title
+                 * - subtitle
+                 * - severity (one of "important", "error", "warning", or "information")
+                 * - date (optional, should be valid <a href="https://www.w3.org/TR/NOTE-datetime">8601 date strings</a>)
+                 */
+                listItems: {
+                    type: Array,
+                    notify: true
+                },
+                /**
+                 * ID of the selected item, for pulling up the details to display in the right side of the inbox view.
+                 */
+                selectedItem: {
+                    type: String,
+                    notify: true
+                },
+                /**
+                 * Search query used to filter the list.
+                 */
+                _query: {
+                    type: String
+                },
+                /**
+                 * Property to sort the list by.
+                 */
+                sortBy: {
+                    type: String,
+                    value: "title"
+                },
+                /**
+                 * Sort order - ascending or descending.
+                 */
+                sortOrder: {
+                    type: String,
+                    value: "ascending"
+                },
+                /**
+                 * By default, the first item in the list will be selected.
+                 * Set this flag to "true" to disable this default selection.
+                 */
+                disableAutoSelect: {
+                    type: Boolean,
+                    value: false
+                }
+            },
+
+            created: function () {
+                /* console.log(this.localName + '#' + this.id + ' was created'); */
+                document.documentElement.classList.remove('in-progress');
+            },
+
+            attached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was attached'); */
+                this.async(function () {
+                    $('[data-toggle="tooltip"]').tooltip();
+                });
+            },
+
+            detached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was detached'); */
+            },
+
+            attributeChanged: function (name, type) {
+                /* console.log(this.localName + '#' + this.id + ' attribute ' + name +
+                    ' was changed to ' + this.getAttribute(name)); */
+            },
+            ready: function () {
+                /* console.log(this.localName + '#' + this.id + ' has local DOM initialized'); */
+            },
+
+
+            /**
+             * Figures out whether the item is currently selected.
+             */
+            _getopcUATag: function (e) {
+                root = this;
+                var section = e.currentTarget.dataset.opcpanel;
+                root.addopcUACheck = false;
+                root.editopcUACheck = false;
+                root.selectedUnit = root.opcUnit = e.currentTarget.dataset.opcuaunit;
+                root.$.getOPCUATag.generateRequest();
+
+
+                var seclectedTagId = e.currentTarget.id;
+                document.getElementById(seclectedTagId).classList.add("active");
+                root.selectedItem = document.getElementById(seclectedTagId).id;
+
+
+
+            },
+            _editopcUATag: function (evt) {
+                root = this;
+                root.editopcUATagCheck = true;
+                root.addopcUATagCheck = false;
+                var seclectedTagId = evt.currentTarget.dataset.listid;
+                for (var i = 0; i < root.listUnitItems.length; i++) {
+                    if (i == seclectedTagId) {
+                        root.selectedUATag = root.listUnitItems[i];
+                    }
+                }
+            },
+            _computeClass: function (selectedId, id) {
+                return (selectedId && String(selectedId) === String(id)) ? 'active' : '';
+            },
+            /**
+             * When the window or any parent container is resized, need to recalculate the bounds
+             * of the px-inbox and react accordingly - in constrained situations, the list and detail
+             * will not be displayed simultaneously but will toggle back and forth instead.
+             */
+            _calculateBounds: function (evt) {
+                this.debounce('resize', function () {
+                    if (this.getBoundingClientRect().width < 700) {
+                        this.toggleClass('constrained', true, this.$.list);
+                        this.toggleClass('constrained', true, this.$.detail);
+
+                        this.toggleClass('detail-active', false, this.$.list);
+                        this.toggleClass('list-active', true, this.$.detail);
+
+                    } else {
+                        this.toggleClass('constrained', false, this.$.list);
+                        this.toggleClass('constrained', false, this.$.detail);
+
+                        this.toggleClass('detail-active', true, this.$.list);
+                        this.toggleClass('list-active', false, this.$.detail);
+                    }
+                }, 300);
+            },
+            /**
+             * For small form factors, these classes are toggled in order to toggle back and forth
+             * between the list and detail views.
+             */
+            _goBackToList: function (evt) {
+                this.toggleClass('detail-active', false, this.$.list);
+                this.toggleClass('list-active', true, this.$.detail);
+            },
+            /**
+             * Searches through the list titles and subtitles and filters based on the query.
+             */
+            _computeFilter: function (query) {
+                if (!query) {
+                    // set filter to null to disable filtering
+                    return null;
+                } else {
+                    // return a filter function for the current search query
+                    query = query.toLowerCase();
+                    return function (listItem) {
+                        var title = listItem.opcua_name.toLowerCase();
+                        var URL = listItem.url.toLowerCase();
+                        var Description = listItem.description.toLowerCase();
+
+                        return (title.indexOf(query) != -1 ||
+                            URL.indexOf(query) != -1 ||
+                            Description.indexOf(query) != -1);
+                    };
+                }
+            },
+            /**
+             * Sort function for the array of list items.
+             */
+            _computeSort: function (sortBy, sortOrder) {
+                sortBy = sortBy ? sortBy.toLowerCase().replace(/\s+/g, '') : '';
+                var asc = sortOrder === 'ascending';
+                // return sort function which maps severities to numeric values
+                if (asc) {
+                    return function (a, b) {
+                        return (a[sortBy] < b[sortBy]) ? -1 : (a[sortBy] > b[sortBy]) ? 1 : -1;
+                    }
+                } else if (!asc) {
+                    return function (b, a) {
+                        return (a[sortBy] < b[sortBy]) ? -1 : (a[sortBy] > b[sortBy]) ? 1 : 0;
+
+                    }
+                }
+            },
+            _reverseSort: function (e) {
+                var id = e.currentTarget.id;
+                var sectionId = id.slice(4, 20);
+                var sort = 'sortIcon' + sectionId;
+                this.async(function () {
+                    if (this.sortOrder === 'ascending') {
+                        this.sortOrder = 'descending';
+                        this.$[sort].classList.value = 'fas fa-arrow-up';
+                    } else if (this.sortOrder === 'descending') {
+                        this.sortOrder = 'ascending';
+                        this.$[sort].classList.value = 'fas fa-arrow-down';
+                    }
+                });
+
+            },
+            _updateClass: function () {
+                this.debounce('_updateClass', function () {
+                    if (this.$.list__body.scrollTop > 0) {
+                        this.toggleClass('shadow-component', true, Polymer.dom(this.root)
+                            .querySelector('.list__header'));
+                    } else {
+                        this.toggleClass('shadow-component', false, Polymer.dom(this.root)
+                            .querySelector('.list__header'));
+                    }
+                }, 50);
+            },
+            _editopcUA: function (evt) {
+                evt.stopPropagation()
+                root = this;
+                root.listUnitItems = false;
+                var seclectedTagId = evt.currentTarget.dataset.listid;
+                for (var i = 0; i < root.listItems.length; i++) {
+                    if (i == seclectedTagId) {
+                        root.selectedTagAlert = root.listItems[i];
+                    }
+                }
+                if (!root.editopcUACheck) {
+                    root.addopcUATagCheck = false;
+                    root.editopcUATagCheck = false
+                    root.addopcUACheck = false;
+                    root.editopcUACheck = true;
+                }
+            },
+            _sortByChange: function (e) {
+                this.set('sortBy', e.target.value)
+            },
+            _saveopcUA: function () {
+                root = this;
+                if (root.$$('#addopcUA').checkValidity()) {
+                    root.opcName = root.$$('#opcName').value;
+                    root.description = root.$$('#description').value;
+                    root.opcURL = encodeURIComponent(root.$$('#opcURL').value);
+                    root.$.e_addOPCUA.generateRequest();
+                }
+            },
+            _onResponse_addOPCUA: function (e) {
+                root = this;
+                root.addOPCApiAlerts = e.detail.response.status;
+                this.async(function () {
+                    root.addOPCApiAlerts = false;
+                }, 5000);
+                document.getElementById('getopcUA').generateRequest();
+            },
+            _onResponse_updateOPCUA: function (e) {
+                root = this;
+                root.editOPCApiAlerts = e.detail.response.status;
+                this.async(function () {
+                    root.editOPCApiAlerts = false;
+                }, 5000);
+                document.getElementById('getopcUA').generateRequest();
+            },
+            _updateopcUA: function () {
+                root = this;
+                if (root.$$('#editopcUAform').checkValidity()) {
+                    root.opcName = root.$$('#editopcName').value;
+                    root.opcURL = encodeURIComponent(root.$$('#editopcURL').value);
+                    root.description = root.$$('#editdescription').value;
+                    root.$.e_updateOPCUA.generateRequest();
+                }
+            },
+            _removeopcUA: function () {
+                root = this;
+                root.opcName = root.$$('#editopcName').value;
+                root.$.e_removeOPCUA.generateRequest();
+            },
+            _onResponse_removeOPCUA: function (e) {
+                root = this;
+                root.editOPCApiAlerts = e.detail.response.status;
+                this.async(function () {
+                    root.editOPCApiAlerts = false;
+                    root.editopcUACheck = false;
+                }, 5000);
+                document.getElementById('getopcUA').generateRequest();
+            },
+            _onResponse_addOPCUATag: function (e) {
+                root = this;
+                root.addOPCTagApiAlerts = e.detail.response.status;
+                this.async(function () {
+                    root.addOPCTagApiAlerts = false;
+                    root.addopcUATagCheck = false;
+                }, 5000);
+                document.getElementById('getOPCUATag').generateRequest();
+
+            },
+            _saveopcUATag: function () {
+                root = this;
+                if (root.$$('#addopcUATag').checkValidity()) {
+                    root.opcName = root.$$('#opcUnitName').value
+                    root.tagName = root.$$('#opcName').value;
+                    root.opcuaTagName = root.$$('#opcTagName').value;
+                    root.description = root.$$('#description').value;
+                    root.$.e_addOPCUATag.generateRequest();
+                }
+            },
+            _onResponse_updateOPCUATag: function (e) {
+                root = this;
+                root.editOPCTagApiAlerts = e.detail.response.status;
+                this.async(function () {
+                    root.editOPCTagApiAlerts = false;
+                }, 5000);
+                document.getElementById('getOPCUATag').generateRequest();
+            },
+            _onResponse_deleteOPCUATag: function (e) {
+                root = this;
+                root.editOPCTagApiAlerts = e.detail.response.status;
+                this.async(function () {
+                    root.editOPCTagApiAlerts = false;
+                    root.editopcUATagCheck = false;
+                }, 5000);
+                document.getElementById('getOPCUATag').generateRequest();
+            },
+            _removeOpcUATag: function () {
+                root = this;
+                root.opcName = root.$$('#editopcUnitName').value
+                root.tagName = root.$$('#editopcName').value;
+                root.$.e_deleteOPCUATag.generateRequest();
+            },
+            _cancelPanel: function (e) {
+                root = this;
+                var section = e.currentTarget.dataset.opcpanel;
+                if (section == 'listUnitItems') {
+                    root.addopcUATagCheck = false
+                    root.editopcUATagCheck = false
+                }
+                root[section] = false;
+            },
+            _openPanel: function (e) {
+                root = this;
+                var section = e.currentTarget.dataset.opcpanel;
+                if (section == 'addopcUATagCheck') {
+                    root[section] = true;
+                    root.editopcUATagCheck = false;
+                }
+                else if (section == 'editopcUATagCheck') {
+                    root[section] = true;
+                    root.addopcUATagCheck = false;
+                }
+                else if (section == 'addopcUACheck') {
+                    root.addopcUATagCheck = false;
+                    root.editopcUATagCheck = false;
+                    root.editopcUACheck = false;
+                    root.listUnitItems = false;
+                }
+                else if (section == 'editopcUACheck') {
+                    root.addopcUATagCheck = false;
+                    root.editopcUATagCheck = false;
+                    root.addopcUACheck = false;
+                    root.listUnitItems = false;
+                }
+                root[section] = true;
+            },
+            _updateopcUATag: function () {
+                root = this;
+                if (root.$$('#editopcUATag').checkValidity()) {
+                    root.opcName = root.$$('#editopcUnitName').value
+                    root.tagName = root.$$('#editopcTagName').value;
+                    root.opcuaTagName = root.$$('#editopcName').value;
+                    root.description = root.$$('#editdescription').value;
+                    root.$.e_updateOPCUATag.generateRequest();
+                }
+            },
+            _onResponse_getOPCUATag: function (e) {
+                root = this;
+                root.listUnitItems = e.detail.response;
+            }
+        });
+    </script>
+
+</dom-module>

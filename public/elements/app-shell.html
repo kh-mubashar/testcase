@@ -1,0 +1,248 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-router/app-router.html">
+<link rel="import" href="global-loader/global-loader.html">
+<script src="../bower_components/highcharts/highstock.js"></script>
+<script type="text/javascript" src="../highcharts/moment.min.js"></script>
+<script type="text/javascript" src="../highcharts/daterangepicker.min.js"></script>
+<script type="text/javascript" src="../highcharts/moment.min.js"></script>
+<script type="text/javascript" src="../highcharts/boost.js"></script>
+<link rel="stylesheet" type="text/css" href="../highcharts/daterangepicker.css" />
+
+<dom-module id="app-shell">
+
+    <!-- <link rel="import" type="css" href="../bower_components/bootstrap/dist/css/bootstrap.min.css"> -->
+
+    <template>
+        <!-- scoped CSS for this element -->
+        <style>
+            :host {
+                display: block;
+                height: 100%;
+                padding-top: 56px;
+                /*height on nav*/
+            }
+
+            .navbar-expand-lg .nav-link:not(.active) {
+                box-shadow: inset -1px 0 0 rgba(255, 255, 255, .05);
+            }
+
+            @media (min-width: 992px) {
+                .navbar-expand-lg .navbar-brand {
+                    box-shadow: inset -1px 0 0 rgba(255, 255, 255, .05);
+                }
+            }
+
+            .navbar-expand-lg .nav-link.active {
+                background-color: rgba(0, 0, 0, .25);
+                box-shadow: inset 0 2px 0 0 #00C4E4 !important;
+            }
+
+            ::content .container-with-sidebar {
+                padding-left: 64px;
+                padding-right: 0;
+            }
+
+            ::content .sidebar {
+                width: 64px;
+                left: 0;
+            }
+
+            .navbar {
+                z-index: 9999;
+            }
+        </style>
+
+        <nav class="navbar navbar-dark bg-dark fixed-top navbar-expand-lg p-0">
+
+            <a class="d-flex align-items-center navbar-brand p-3 m-0" href="/">
+                <svg width="20" height="20" viewBox="0 0 30 30.157" class="mx-2">
+                    <g transform="translate(-16 -15)">
+                        <path id="Path_474" data-name="Path 474"
+                            d="M169.217,129.522l.752-.665.753.563.753-.875.753-1.647.752-.609.753,2.261.753-.854.753-1.637.753.414.752-.87.753-.3.753-.558.753-1.238.752.2.753,2.578.753,3.622.753.245.752,1.176.753-.363.753-.292.753.972.752-1.5.753-1.964.753-3.821"
+                            transform="translate(-147.255 -97.248)" fill="none" stroke="#00c4e4" stroke-linecap="square"
+                            stroke-width="1.5" />
+                        <path id="path6000"
+                            d="M-470.9,272.308a5.533,5.533,0,0,1-.473-1.228,2.522,2.522,0,0,0-.587-1.16,5.581,5.581,0,0,0-1.315-.251c-1.12-.11-1.052-.151-2.045,1.236-.643.9-1.095.955-2.412.3-1.36-.678-1.4-.77-1.024-2.24l.322-1.252-.935-.837a4.438,4.438,0,0,0-1.147-.837,5.636,5.636,0,0,0-1.151.437,5.565,5.565,0,0,1-1.166.439c-.336,0-1.065-.846-1.555-1.811-.4-.784-.41-.879-.161-1.26a4.607,4.607,0,0,1,.881-.878,2.408,2.408,0,0,0,.707-.769,5.185,5.185,0,0,0-.829-2.5,4.569,4.569,0,0,0-1.13-.247c-1.426-.178-1.544-.331-1.544-2.005s.117-1.827,1.544-2.005a4.572,4.572,0,0,0,1.13-.247,7.761,7.761,0,0,0,.922-2.34,5.6,5.6,0,0,0-.965-1.086,5.363,5.363,0,0,1-.963-1.092,7.167,7.167,0,0,1,1.6-2.508c.389-.22.539-.2,1.51.239l1.078.484.579-.358a6.659,6.659,0,0,0,1.08-.882l.5-.523-.316-1.227c-.375-1.456-.3-1.611,1.069-2.25,1.314-.613,1.739-.553,2.373.333.993,1.388.925,1.346,2.045,1.236a5.579,5.579,0,0,0,1.315-.251,2.522,2.522,0,0,0,.587-1.16,5.534,5.534,0,0,1,.473-1.229c.351-.426,3-.156,3.318.338a4.022,4.022,0,0,1,.152,1.284,4.15,4.15,0,0,0,.134,1.249,6.617,6.617,0,0,0,2.248,1.119,3.3,3.3,0,0,0,1.126-.7,3.1,3.1,0,0,1,1.193-.7,5.767,5.767,0,0,1,2.314,1.751c.2.368-.021.96-.724,1.96a1.8,1.8,0,0,0-.327.686,7.939,7.939,0,0,0,1.31,2.133,4.126,4.126,0,0,0,1.361.019c.831-.076,1.259-.043,1.447.113a5.911,5.911,0,0,1,.867,2.858,2.707,2.707,0,0,1-1.231.851c-.627.284-1.128.624-1.134.77s-.012.656-.012,1.138.005.995.012,1.138.507.486,1.134.77a2.707,2.707,0,0,1,1.231.851,5.91,5.91,0,0,1-.867,2.858c-.188.156-.616.189-1.447.113a4.126,4.126,0,0,0-1.361.019,7.94,7.94,0,0,0-1.31,2.133,1.8,1.8,0,0,0,.327.686c.7,1,.921,1.591.724,1.96a5.767,5.767,0,0,1-2.314,1.751,3.1,3.1,0,0,1-1.193-.7,3.3,3.3,0,0,0-1.126-.7,6.617,6.617,0,0,0-2.248,1.119,4.151,4.151,0,0,0-.134,1.249,4.02,4.02,0,0,1-.152,1.284C-467.9,272.464-470.553,272.734-470.9,272.308Zm1.787-5.741a8.916,8.916,0,0,0,4.569-2.64,9.043,9.043,0,0,0,2.464-4.66,7.028,7.028,0,0,0,0-3.653,9.043,9.043,0,0,0-2.464-4.66,8.916,8.916,0,0,0-4.569-2.64,7.437,7.437,0,0,0-4.158-.063,9.308,9.308,0,0,0-3,1.186,8.9,8.9,0,0,0-.947.69,9.323,9.323,0,0,0-2.972,10.394,8.226,8.226,0,0,0,2.341,3.615,9.086,9.086,0,0,0,4.314,2.422A7.726,7.726,0,0,0-469.117,266.567Z"
+                            transform="translate(502.466 -227.363)" fill="#fff" />
+                    </g>
+                </svg>
+                <span class="h5 m-0 ml-1 mr-2">Iridium</span>
+            </a>
+
+            <button class="navbar-toggler m-2" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="app-nav navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link p-3 px-4" href="#/dashboard" on-tap="_navClick">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-3 px-4" href="#/trend-analysis/tag-search" on-tap="_navClick">Trend
+                            Analysis</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-3 px-4" href="#/data-management/upload-csv" on-tap="_navClick">Data
+                            Management</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-3 px-4" href="#/alerts" on-tap="_navClick">Alerts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-3 px-4" href="#/gap-analysis" on-tap="_navClick">Gap Analysis</a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav">
+                    <li class="nav-item text-nowrap dropdown">
+                        <a id="userId" class="nav-link dropdown-toggle py-3 px-4" data-toggle="dropdown" href="#"
+                            aria-haspopup="true" aria-expanded="false"><i class="fas fa-user mr-2"></i>{{userId}}</a>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a on-click="_endSession" class="dropdown-item" href="/logout">Logout</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+        </nav>
+
+
+        <app-router mode="hash" scroll-to-hash="disabled" on-state-change="_routerStateChanged">
+
+            <app-route path="/" redirect="/dashboard"></app-route>
+            <!-- Dashboard -->
+            <app-route path="/dashboard" import="../public/elements/view-dashboard.html"></app-route>
+
+            <!-- Trend Analysis -->
+            <app-route path="/trend-analysis" redirect="/trend-analysis/tag-search"></app-route>
+            <app-route path="/trend-analysis/tag-search" import="../public/elements/view-trend-analysis.html">
+            </app-route>
+            <app-route path="/trend-analysis/value-based-search"
+                import="../public/elements/view-value-based-search.html"></app-route>
+            <app-route path="/trend-analysis/similarity-based-search"
+                import="../public/elements/view-similarity-based-search.html">
+            </app-route>
+
+            <!-- Data Management -->
+            <app-route path="/data-management" redirect="/data-management/upload-csv"></app-route>
+            <app-route path="/data-management/upload-csv" import="../public/elements/view-upload-csv.html"></app-route>
+            <app-route path="/data-management/derived-tags" import="../public/elements/view-derived-tags.html">
+            </app-route>
+            <app-route path="/data-management/aggregated-tag" import="../public/elements/view-aggregated-tag.html">
+            </app-route>
+            <app-route path="/data-management/opc-ua" import="../public/elements/view-opc-ua.html">
+            </app-route>
+            <app-route path="/data-management/opc-ua" import="../public/elements/view-opc-ua-list.html">
+            </app-route>
+            <app-route path="/data-management/opc-ua" import="../public/elements/view-opc-ua-tag-list.html">
+            </app-route>
+            <app-route path="/data-management/tag-management" import="../public/elements/view-tag-management.html">
+            </app-route>
+
+
+            <!-- Alerts -->
+            <app-route path="/alerts" import="../public/elements/view-alerts.html">
+            </app-route>
+            <app-route path="/alerts/fingerprint" import="../public/elements/view-fingerprint.html"></app-route>
+            <app-route path="/alerts/add-fingerprint" import="../public/elements/view-add-fingerprint.html">
+            </app-route>
+            <app-route path="/alerts/edit-fingerprint" import="../public/elements/view-edit-fingerprint.html">
+            </app-route>
+
+            <!-- Gap Analysis -->
+            <app-route path="/gap-analysis" import="../public/elements/view-gap-analysis.html"></app-route>
+            <app-route path="/case" import="../public/elements/view-case.html"></app-route>
+            <!-- 404 route -->
+            <app-route path="*" import="../public/elements/view-not-found.html"></app-route>
+
+        </app-router>
+
+    </template>
+
+    <script>
+        Polymer({
+            is: "app-shell",
+
+            created: function () {
+                /* console.log(this.localName + '#' + this.id + ' was created'); */
+                document.documentElement.classList.remove('in-progress');
+            },
+
+            ready: function () {
+                /* console.log(this.localName + '#' + this.id + ' has local DOM initialized'); */
+            },
+
+            attached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was attached'); */
+                this.async(function () {
+                    // access sibling or parent elements here
+                    // this.logged_organization_id, window.logged_organization_id;
+                    this.userId = window.user_id;
+                });
+            },
+
+            detached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was detached'); */
+            },
+
+            attributeChanged: function (name, type) {
+                /* console.log(this.localName + '#' + this.id + ' attribute ' + name +
+                    ' was changed to ' + this.getAttribute(name)); */
+            },
+
+            _routerStateChanged: function (e) {
+                $('html').addClass('in-progress');
+
+                if (e.detail.path.match(/[^\/]+/g)) {
+                    var baseRoute = e.detail.path.match(/[^\/]+/g).reverse().pop();
+                    $('.app-nav a.nav-link').removeClass('active').filter('[href*="#/' + baseRoute + '"]')
+                        .addClass(
+                            'active');
+                    $('[data-toggle="tooltip"]').tooltip('hide');
+
+                    this.setCookie('pageUrl', '/#' + e.detail.path);
+
+                }
+
+                if (document.querySelector('#navbarNav').classList.value.indexOf('show') != -1) {
+                    document.querySelector('[data-target="#navbarNav"]').click();
+                }
+
+            },
+
+            _navClick: function (e) {
+                //$('[data-toggle="collapse"]').filter(':visible').click();
+            },
+            _endSession: function () {
+                if (window.sessionStorage.getItem('currentTagList'))
+                    sessionStorage.removeItem('currentTagList');
+            },
+
+            setCookie: function (name, value, days) {
+                var expires = "";
+                if (days) {
+                    var date = new Date();
+                    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                    expires = "; expires=" + date.toUTCString();
+                }
+                document.cookie = name + "=" + (value || "") + expires + "; path=/";
+            },
+            getCookie: function (name) {
+                var nameEQ = name + "=";
+                var ca = document.cookie.split(';');
+                for (var i = 0; i < ca.length; i++) {
+                    var c = ca[i];
+                    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            },
+            eraseCookie: function (name) {
+                document.cookie = name + '=; Max-Age=-99999999;';
+            }
+        });
+    </script>
+
+</dom-module>

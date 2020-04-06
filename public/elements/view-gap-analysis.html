@@ -1,0 +1,156 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="view-gap-analysis">
+
+    <template>
+        <style>
+            .type-red {
+                color: #e80000
+            }
+
+            .type-orange {
+                color: orange
+            }
+
+            .type-grey {
+                color: #acacac
+            }
+
+            .pill {
+                height: 110px;
+                width: 290px;
+                cursor: pointer;
+            }
+
+            #alert {
+                text-decoration: none;
+                color: unset;
+            }
+        </style>
+        <div class="d-flex flex-column  h-100">
+
+            <div class="m-3">
+                <div class="">
+                    <!-- pill start -->
+                    <div style="display: none;" class=" mb-3 col-md-3" on-click="_redirect">
+                        <div class="pill row border rounded pt-3 pb-2 px-2">
+                            <div class="text-right">
+                                <div>
+                                    <small class=" text-right">
+                                        <span class="text-muted" style="vertical-align: super;">Notification:
+                                            <span class="border border-danger p-1 rounded">
+                                                <i class="fas fa-circle type-red"></i> 3 cases found</span>
+                                        </span>
+                                    </small>
+                                </div>
+                                <div class=" text-left">
+                                    <span class="h4 font-weight-light text-muted m-0" style="vertical-align: bottom;">
+                                        Methane Slip from Secondary Reformer
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- pill end -->
+                    <!-- pill start -->
+                    <div style="display: none;" class="mb-3 col-md-3">
+                        <div class="pill row border rounded pt-3 pb-2 px-2">
+                            <div class=" flex-fill">
+                                <div class="float-right">
+                                    <small class=" text-right">
+                                        <span class="text-muted" style="vertical-align: super;">Notification:
+                                            <a id="alert" href="javascript:void" title="Missing Tags"
+                                                data-toggle="popover" data-trigger="focus" data-html="true"
+                                                data-content="<ul>
+                                                    <li>Loop Pressure 7A50PI5024</li>
+                                                    <li>Purge Flow 7A50FIC5156</li>
+                                                    <li>NH3 to Storage 7A60FI6010</li>
+                                                    <li>H/N Ratio H2/N2 RATIO</li>
+                                                    <li>NH3 at Converter Inlet I/L NH3</li>
+                                                    <li>NH3 to Storage 7A60FI6010</li>
+                                                </ul>">
+                                                <span class="border  p-1 rounded border-warning">
+                                                    <i class="fas fa-circle type-orange "></i> 6 Tag Missing
+                                                </span>
+                                            </a>
+                                        </span>
+                                    </small>
+                                </div>
+                                <br><br>
+                                <div class=" text-left">
+                                    <span class="h4 font-weight-light text-muted m-0" style="vertical-align: bottom;">
+                                        Ammonia Production
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- pill end -->
+
+                    <!-- pill start -->
+                    <div class="mb-3 col-md-3" on-click="_redirect">
+                        <div class="pill row border rounded pt-3 pb-2 px-2">
+                            <div class=" flex-fill">
+                                <div class="float-right">
+                                    <small class=" text-right">
+                                        <div>
+                                            <small class=" text-right">
+                                                <span class="text-muted" style="vertical-align: super;">Notification:
+                                                    <span class="border border-danger p-1 rounded">
+                                                        <i class="fas fa-circle type-red"></i> 2 cases found</span>
+                                                </span>
+                                            </small>
+                                        </div>
+                                        </span>
+                                    </small>
+                                </div>
+                                <br><br>
+                                <div class=" text-left">
+                                    <span class="h4 font-weight-light text-muted m-0" style="vertical-align: bottom;">
+                                        Energy per Ton NH3
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- pill end -->
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        Polymer({
+            is: "view-gap-analysis",
+
+            created: function () {
+                /* console.log(this.localName + '#' + this.id + ' was created'); */
+                document.documentElement.classList.remove('in-progress');
+            },
+
+            ready: function () {
+                /* console.log(this.localName + '#' + this.id + ' has local DOM initialized'); */
+            },
+
+            attached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was attached'); */
+                $(function () {
+                    $('[data-toggle="popover"]').popover();
+                })
+            },
+
+            detached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was detached'); */
+            },
+
+            attributeChanged: function (name, type) {
+                /* console.log(this.localName + '#' + this.id + ' attribute ' + name +
+                    ' was changed to ' + this.getAttribute(name)); */
+            },
+            _redirect: function () {
+                window.location.href = "#/case";
+            }
+        });
+    </script>
+
+</dom-module>

@@ -1,0 +1,741 @@
+<div hidden="" by-polymer-bundler=""><dom-module id="opc-ua-tag-list">
+
+    <template>
+
+        <style>
+            #list,
+            .crudPanel {
+                min-width: 336px;
+            }
+
+            .list-container {
+                height: calc(100vh - 10rem);
+                overflow-y: auto;
+            }
+
+            .has-search .form-control {
+                padding-left: 2.375rem;
+            }
+
+            .nav-link.active {
+                background: #dee2e6;
+            }
+
+            .has-search .form-control-feedback {
+                position: absolute;
+                z-index: 2;
+                display: block;
+                width: 2.375rem;
+                height: 2.375rem;
+                line-height: 2rem;
+                text-align: center;
+                pointer-events: none;
+                color: #aaa;
+            }
+
+            .type-red {
+                color: #e80000
+            }
+
+            .type-orange {
+                color: orange
+            }
+
+            .type-green {
+                color: #007900
+            }
+
+            .list-group-item.active {
+                background-color: #6c757d;
+                border-color: rgba(0, 0, 0, .125);
+                color: #efefef;
+            }
+
+            .list-group-item.active .text-black-50 {
+                color: rgba(255, 255, 255, .75) !important;
+            }
+
+
+            .list.constrained.detail-active {
+                display: none
+            }
+
+            .detail.list-active {
+                display: none
+            }
+
+            .back-link {
+                display: none
+            }
+
+            .detail.constrained .back-link {
+                display: block
+            }
+
+            .detail.constrained.list-active {
+                display: none
+            }
+
+            ::content .detail.constrained .detail-container {
+                height: auto !important;
+            }
+
+            .detail {
+                width: calc(100% - 25% - 64px);
+            }
+
+            .fa-bell {
+                font-size: 18px;
+            }
+
+            ::content .filters-container {
+                overflow-y: auto;
+                background: #dee2e6;
+            }
+
+
+
+            #sortBy,
+            #sortIcon {
+                cursor: pointer;
+            }
+
+
+            .opcUATagtatus.high,
+            .opcUAtatus.high {
+                color: #d00000;
+            }
+
+            .opcUATagtatus.medium,
+            .opcUAtatus.medium {
+                color: #f2b600;
+            }
+
+            .opcUAtatus,
+            .opcUAtatus.low,
+            .opcUATagtatus,
+            .opcUATagtatus.low {
+                color: #4fbb00;
+            }
+
+            .header {
+                align-items: center;
+            }
+
+            .btn-light {
+                background-color: #dae0e5;
+                border-color: #d3d9df;
+            }
+
+            .fa-link {
+                transform: rotate(90deg);
+                font-size: 9px;
+                margin-top: 12px;
+                margin-left: -5px;
+            }
+
+            ::-webkit-scrollbar {
+                width: 10px;
+                border-radius: 10px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 10px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #555;
+                border-radius: 10px;
+            }
+
+            .fas,
+            .list-group-item-action {
+                cursor: pointer;
+            }
+
+            .sidebar {
+                overflow: hidden;
+            }
+
+            .editPanel {
+                position: absolute;
+                top: 5px;
+                right: 0px;
+            }
+
+            .list-group :first-child {
+                border-top: 0px;
+            }
+
+            .active {
+                background-color: #6c757d;
+                border-color: rgba(0, 0, 0, .125);
+                color: #efefef;
+            }
+        </style>
+        <div class="d-flex">
+            <template is="dom-if" if="[[listUnitItems]]">
+                <div id="list" class="list   border-right p-0">
+                    <div class="filters-container  p-2 border-bottom">
+                        <div class="d-flex header">
+                            <div class=" py-0 flex-fill lead" for="opcUA">
+                                <strong>Tag Data connectivity </strong>
+                            </div>
+                            <button type="button" on-click="_openPanel" data-opcpanel="addopcUATagCheck" class="btn btn-primary btn-sm">
+                                Add Tag
+                            </button>
+                        </div>
+                    </div>
+                    <div class="px-2 pt-2 border-bottom bg-light">
+                        <div class="form-group has-search  my-1 input-group-sm">
+                            <span class="fa fa-search form-control-feedback"></span>
+                            <input type="text" class="form-control form-control-sm" value="{{_query::input}}" placeholder="Search">
+                        </div>
+                        <div class=" form-group d-flex my-1  text-black-50">
+                            <label for="sortBy" class="col-form-label mr-1 form-control-sm">Sort by: </label>
+                            <div class="flex-grow-1">
+                                <select class="form-control  form-control-plaintext text-black-50 form-control-sm" id="sortBy" on-change="_sortByChange">
+                                    <option value="tagName">Tag Name</option>
+                                    <option value="opcTagName">OPC Tag Name</option>
+                                    <option value="Description">Description</option>
+                                </select>
+                            </div>
+                            <div id="sortUATag" class="ml-1 col-form-label form-control-sm" on-tap="_reverseSort">
+                                <i id="sortIconUATag" class="fas fa-arrow-down"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-container position-sticky ">
+                        <template is="dom-if" if="{{!listUnitItems.0.tag_name}}" restamp="">
+                            <div class="text-muted text-center text-capitalize">no data found</div>
+                        </template>
+                        <ul id="opcTag_list__body" class="list-group list-group-flush " on-scroll="_updateClass">
+                            <template restamp="" is="dom-repeat" items="{{listUnitItems}}" as="listItem" filter="{{_computeFilter(_query)}}" sort="{{_computeSort(sortBy,sortOrder)}}">
+                                <li id="[[index]]" data-listid$="{{listItem.tag_name}}" data-opcpanel="addopcUATagCheck" class$="list-group-item list-group-item-action   pointer {{_computeClass(selectedItem,listItem.tag_name)}}" on-tap="_editopcUATag">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <div class="position-absolute">
+                                            <i class$="fas fa-circle type-{{listItem.type}} opcUATagtatus {{listItem.priority}}"></i>
+                                        </div>
+                                        <div class="text-left pl-4 col-md-12">
+                                            <template is="dom-if" if="{{listItem.tag_name}}">
+                                                <div class="tagName ">[[index]]: {{listItem.tag_name}}</div>
+                                            </template>
+                                            <div class="small opcTagName text-black-50">OPC Tag Name :
+                                                {{listItem.tag_opc_name}}
+                                            </div>
+                                            <template is="dom-if" if="{{listItem.description}}">
+                                                <div class="Description  small text-black-50">Description :
+                                                    {{listItem.description}}
+                                                </div>
+                                            </template>
+
+                                        </div>
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+            </template>
+            <template is="dom-if" if="[[addopcUATagCheck]]" restamp="">
+                <div class=" bg-light crudPanel">
+                    <div class=" flex-column pt-2  h-100 border-right">
+                        <div class="px-3">
+                            <div class="d-flex pb-1 mb-1 mt-1 header">
+                                <div class="col-form-label py-0 flex-fill h6" for="opcUATag">Add Tag Data</div>
+                            </div>
+                            <hr class="m-0">
+                            <form id="addopcUATag" onsubmit="return false">
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="opcUnitName">Unit</label>
+                                    <input disabled="" required="" type="text" value$="[[listSelectedUnit]]" class="form-control" id="opcUnitName" name="opcUnitName">
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="opcTagName">OPC UA TagName</label>
+                                    <input required="" type="text" class="form-control" pattern="[a-zA-Z][a-zA-Z0-9\s_.]*" id="opcTagName" name="opcTagName">
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="tagName">Name</label>
+                                    <input required="" type="text" class="form-control" pattern="[a-zA-Z][a-zA-Z0-9\s_.]*" id="tagName" name="tagName">
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="description">Description</label>
+                                    <textarea required="" type="text" class="form-control" pattern="[a-zA-Z][a-zA-Z0-9\s_.]*" id="description" name="description"></textarea>
+                                </div>
+                                <template is="dom-if" if="[[addOPCTagApiAlerts]]">
+                                    <div style="z-index:10;" class="alert alert-info mb-0 alert-dismissible fade show mb-2" role="alert">
+                                        <span id="addOPCTagApiAlerts">[[addOPCTagApiAlerts]]</span>
+                                    </div>
+                                </template>
+                                <div class="d-flex flex-row">
+                                    <button type="reset" data-opcpanel="addopcUATagCheck" class="btn btn-light btn-sm col-md-6 mr-1" on-click="_cancelPanel">Cancel</button>
+                                    <button type="submit" class="btn btn-primary btn-sm col-md-6 " on-click="_saveopcUATag">Save</button>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <template is="dom-if" if="[[editopcUATagCheck]]" restamp="">
+                <div class="bg-light crudPanel  border-right">
+                    <div class=" flex-column pt-2  ">
+                        <div class="px-3">
+                            <div class="d-flex pb-1 mb-1 mt-1 header">
+                                <div class="col-form-label py-0 flex-fill h6" for="opcUATag">Edit Tag Data</div>
+                            </div>
+                            <hr class="my-1">
+                            <form id="editopcUATag" onsubmit="return false">
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="opcUnitName">OPC UA Unit</label>
+                                    <input disabled="" required="" type="text" value$="{{selectedUATag.opcua_name}}" class="form-control" id="editopcUnitName" name="opcUnitName">
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="opcTagName">OPC UA TagName</label>
+                                    <input required="" type="text" class="form-control" value="{{selectedUATag.tag_opc_name}}" pattern="[a-zA-Z][a-zA-Z0-9\s_.]*" id="editopcTagName" name="opcTagName">
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="tagName">Name</label>
+                                    <input disabled="" required="" type="text" class="form-control" id="editTagName" value="{{selectedUATag.tag_name}}" pattern="[a-zA-Z][a-zA-Z0-9\s_.]*" name="tagName">
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="description">Description</label>
+                                    <textarea required="" type="text" value="{{selectedUATag.description}}" class="form-control" id="editdescription" pattern="[a-zA-Z][a-zA-Z0-9\s_.]*" name="description"></textarea>
+                                </div>
+                                <template is="dom-if" if="[[editOPCTagApiAlerts]]">
+                                    <div style="z-index:10;" class="alert alert-info mb-0 alert-dismissible fade show mb-2" role="alert">
+                                        <span id="editOPCTagApiAlerts">[[editOPCTagApiAlerts]]</span>
+                                    </div>
+                                </template>
+                                <div class="d-flex flex-row  mb-2">
+                                    <button type="reset" data-opcpanel="editopcUATagCheck" class="btn btn-light btn-sm col-md-6 mr-1" on-click="_cancelPanel">Cancel</button>
+                                    <button type="button" class="btn btn-secondary btn-sm col-md-6 mr-1" on-click="_removeOpcUATag">Delete</button>
+                                </div>
+                                <div class="d-flex flex-row">
+                                    <button type="submit" class="btn btn-primary btn-sm col-md-12 ml-1" on-click="_updateopcUATag">Save</button>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <global-loader>
+            <iron-ajax method="POST" id="getOPCUATag" url="/getOPCUATag/{{unitName}}" on-response="_onResponse_getOPCUATag" on-error="_onError"></iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="e_addOPCUATag" body="{{formData}}" url="/addOPCUATag/{{unitName}}/{{tagName}}/{{description}}/{{opcuaTagName}}" on-response="_onResponse_addOPCUATag" on-error="_onError">
+            </iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="e_deleteOPCUATag" url="/deleteOPCUATag/{{unitName}}/{{tagName}}" on-response="_onResponse_deleteOPCUATag" on-error="_onError">
+            </iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="e_updateOPCUATag" url="/updateOPCUATag/{{unitName}}/{{tagName}}/{{description}}/{{opcuaTagName}}" on-response="_onResponse_updateOPCUATag" on-error="_onError">
+            </iron-ajax>
+        </global-loader>
+    </template>
+
+    <script>Polymer({is:"opc-ua-tag-list",behaviors:[Polymer.IronResizableBehavior],listeners:{"iron-resize":"_calculateBounds"},properties:{listItems:{type:Array,notify:!0},selectedItem:{type:String,notify:!0},_query:{type:String},sortBy:{type:String,value:"title"},sortOrder:{type:String,value:"ascending"},disableAutoSelect:{type:Boolean,value:!1}},created:function created(){document.documentElement.classList.remove("in-progress")},attached:function attached(){this.async(function(){$("[data-toggle=\"tooltip\"]").tooltip()})},detached:function detached(){},attributeChanged:function attributeChanged(name,type){},ready:function ready(){},_editopcUATag:function _editopcUATag(evt){root=this;root.editopcUATagCheck=!0;root.addopcUATagCheck=!1;for(var seclectedTagId=evt.currentTarget.id,i=0;i<root.listUnitItems.length;i++){if(evt.currentTarget.dataset.listid==root.listUnitItems[i].tag_name){root.selectedUATag=root.listUnitItems[i]}}var seclectedTagId=evt.currentTarget.id;document.getElementById(seclectedTagId).classList.add("active");root.selectedItem=evt.currentTarget.dataset.listid},_computeClass:function _computeClass(selectedId,id){return selectedId&&selectedId+""===id+""?"active":""},_calculateBounds:function _calculateBounds(evt){this.debounce("resize",function(){if(700>this.getBoundingClientRect().width){this.toggleClass("constrained",!0,this.$.list);this.toggleClass("constrained",!0,this.$.detail);this.toggleClass("detail-active",!1,this.$.list);this.toggleClass("list-active",!0,this.$.detail)}else{this.toggleClass("constrained",!1,this.$.list);this.toggleClass("constrained",!1,this.$.detail);this.toggleClass("detail-active",!0,this.$.list);this.toggleClass("list-active",!1,this.$.detail)}},300)},_computeFilter:function _computeFilter(query){if(!query){return null}else{query=query.toLowerCase();return function(listItem){var tagName=listItem.tag_name.toLowerCase(),opcTagName=listItem.tag_opc_name.toLowerCase(),Description=listItem.description.toLowerCase();return-1!=tagName.indexOf(query)||-1!=opcTagName.indexOf(query)||-1!=Description.indexOf(query)}}},_computeSort:function _computeSort(sortBy,sortOrder){sortBy=sortBy?sortBy.toLowerCase().replace(/\s+/g,""):"";var asc="ascending"===sortOrder;if(asc){return function(a,b){return a[sortBy]<b[sortBy]?-1:a[sortBy]>b[sortBy]?1:-1}}else if(!asc){return function(b,a){return a[sortBy]<b[sortBy]?-1:a[sortBy]>b[sortBy]?1:0}}},_reverseSort:function _reverseSort(e){var id=e.currentTarget.id,sectionId=id.slice(4,20),sort="sortIcon"+sectionId;this.async(function(){if("ascending"===this.sortOrder){this.sortOrder="descending";document.getElementById(sort).classList.value="fas fa-arrow-up"}else if("descending"===this.sortOrder){this.sortOrder="ascending";document.getElementById(sort).classList.value="fas fa-arrow-down"}})},_updateClass:function _updateClass(){this.debounce("_updateClass",function(){if(0<this.$.list__body.scrollTop){this.toggleClass("shadow-component",!0,Polymer.dom(this.root).querySelector(".list__header"))}else{this.toggleClass("shadow-component",!1,Polymer.dom(this.root).querySelector(".list__header"))}},50)},_sortByChange:function _sortByChange(e){this.set("sortBy",e.target.value)},_onResponse_addOPCUATag:function _onResponse_addOPCUATag(e){root=this;root.addOPCTagApiAlerts=e.detail.response.status;this.async(function(){root.addOPCTagApiAlerts=!1;root.addopcUATagCheck=!1},5e3);document.getElementById("getOPCUATag").generateRequest()},_saveopcUATag:function _saveopcUATag(){root=this;if(root.$$("#addopcUATag").checkValidity()){root.unitName=root.$$("#opcUnitName").value;root.tagName=root.$$("#tagName").value;root.opcuaTagName=root.$$("#opcTagName").value;root.description=root.$$("#description").value;root.$.e_addOPCUATag.generateRequest()}},_onResponse_updateOPCUATag:function _onResponse_updateOPCUATag(e){root=this;root.editOPCTagApiAlerts=e.detail.response.status;this.async(function(){root.editOPCTagApiAlerts=!1;root.editopcUATagCheck=!1},5e3);document.getElementById("getOPCUATag").generateRequest()},_onResponse_deleteOPCUATag:function _onResponse_deleteOPCUATag(e){root=this;root.editOPCTagApiAlerts=e.detail.response.status;this.async(function(){root.editOPCTagApiAlerts=!1;root.editopcUATagCheck=!1},5e3);document.getElementById("getOPCUATag").generateRequest()},_removeOpcUATag:function _removeOpcUATag(){root=this;root.unitName=root.$$("#editopcUnitName").value;root.tagName=root.$$("#editTagName").value;root.$.e_deleteOPCUATag.generateRequest()},_cancelPanel:function _cancelPanel(e){root=this;var section=e.currentTarget.dataset.opcpanel;if("listUnitItems"==section){root.addopcUATagCheck=!1;root.editopcUATagCheck=!1}root[section]=!1},_openPanel:function _openPanel(e){root=this;var section=e.currentTarget.dataset.opcpanel;if("addopcUATagCheck"==section){root[section]=!0;root.editopcUATagCheck=!1}else if("editopcUATagCheck"==section){root[section]=!0;root.addopcUATagCheck=!1}root[section]=!0},_updateopcUATag:function _updateopcUATag(){root=this;if(root.$$("#editopcUATag").checkValidity()){root.unitName=root.$$("#editopcUnitName").value;root.tagName=root.$$("#editTagName").value;root.opcuaTagName=root.$$("#editopcTagName").value;root.description=root.$$("#editdescription").value;root.$.e_updateOPCUATag.generateRequest()}},_onResponse_getOPCUATag:function _onResponse_getOPCUATag(e){root=this;root.listUnitItems=e.detail.response}});</script>
+
+</dom-module><dom-module id="opc-ua-list">
+
+    <template>
+
+        <style>
+            .list-container {
+                height: calc(100vh - 10rem);
+                overflow-y: auto;
+            }
+
+            .has-search .form-control {
+                padding-left: 2.375rem;
+            }
+
+            .nav-link.active {
+                background: #dee2e6;
+            }
+
+            .has-search .form-control-feedback {
+                position: absolute;
+                z-index: 2;
+                display: block;
+                width: 2.375rem;
+                height: 2.375rem;
+                line-height: 2rem;
+                text-align: center;
+                pointer-events: none;
+                color: #aaa;
+            }
+
+            .type-red {
+                color: #e80000
+            }
+
+            .type-orange {
+                color: orange
+            }
+
+            .type-green {
+                color: #007900
+            }
+
+            .list-group-item.active {
+                background-color: #6c757d;
+                border-color: rgba(0, 0, 0, .125);
+                color: #efefef;
+            }
+
+            .list-group-item.active .text-black-50 {
+                color: rgba(255, 255, 255, .75) !important;
+            }
+
+
+            .list.constrained.detail-active {
+                display: none
+            }
+
+            .detail.list-active {
+                display: none
+            }
+
+            .back-link {
+                display: none
+            }
+
+            .detail.constrained .back-link {
+                display: block
+            }
+
+            .detail.constrained.list-active {
+                display: none
+            }
+
+            ::content .detail.constrained .detail-container {
+                height: auto !important;
+            }
+
+            .detail {
+                width: calc(100% - 25% - 64px);
+            }
+
+            .fa-bell {
+                font-size: 18px;
+            }
+
+            ::content .filters-container {
+                overflow-y: auto;
+                background: #dee2e6;
+            }
+
+
+
+            #sortBy,
+            #sortIcon {
+                cursor: pointer;
+            }
+
+
+            .opcUATagtatus.high,
+            .opcUAtatus.high {
+                color: #d00000;
+            }
+
+            .opcUATagtatus.medium,
+            .opcUAtatus.medium {
+                color: #f2b600;
+            }
+
+            .opcUAtatus,
+            .opcUAtatus.low,
+            .opcUATagtatus,
+            .opcUATagtatus.low {
+                color: #4fbb00;
+            }
+
+            .header {
+                align-items: center;
+            }
+
+            .btn-light {
+                background-color: #dae0e5;
+                border-color: #d3d9df;
+            }
+
+            .fa-link {
+                transform: rotate(90deg);
+                font-size: 9px;
+                margin-top: 12px;
+                margin-left: -5px;
+            }
+
+            ::-webkit-scrollbar {
+                width: 10px;
+                border-radius: 10px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 10px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #555;
+                border-radius: 10px;
+            }
+
+            .fas,
+            .list-group-item-action {
+                cursor: pointer;
+            }
+
+            .sidebar {
+                overflow: hidden;
+            }
+
+            .editPanel {
+                position: absolute;
+                top: 5px;
+                right: 0px;
+            }
+
+            .list-group :first-child {
+                border-top: 0px;
+            }
+
+            .active {
+                background-color: #6c757d;
+                border-color: rgba(0, 0, 0, .125);
+                color: #efefef;
+            }
+        </style>
+
+        <div class="container-fluid h-100">
+
+            <div class="row h-100">
+                <nav class="bg-light  flex-lg-grow-0 sidebar  h-100 text-center border-right">
+                    <ul class="sub-nav nav flex-lg-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/data-management/upload-csv" data-toggle="tooltip" data-placement="right" title="Upload CSV">
+                                <i class="fas fa-upload"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/data-management/derived-tags" data-toggle="tooltip" data-placement="right" title="Derived Tags">
+                                <i class="fas fa-tags"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3" href="#/data-management/aggregated-tag" data-toggle="tooltip" data-placement="right" title="Aggregated Tag">
+                                <i class="fas fa-tag"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 active" href="#/data-management/opc-ua" data-toggle="tooltip" data-placement="right" title="OPC UA">
+                                <i class="fas fa-satellite-dish"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/data-management/tag-management" data-toggle="tooltip" data-placement="right" title="Tag Management">
+                                <i class="far fa-list-alt"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div id="list" class="list w-25  border-right p-0">
+                    <div class="filters-container  p-2 border-bottom">
+                        <div class="d-flex header">
+                            <div class=" py-0 flex-fill lead" for="opcUA"><strong>Data connectivity</strong></div>
+                            <button type="button" on-click="_openPanel" data-opcpanel="addopcUACheck" class="btn btn-primary btn-sm">
+                                Add OPC
+                            </button>
+                        </div>
+                    </div>
+                    <div class=" px-2 pt-2 border-bottom bg-light">
+                        <div class="form-group has-search my-1 input-group-sm">
+                            <span class="fa fa-search form-control-feedback"></span>
+                            <input type="text" class="form-control" value="{{_query::input}}" placeholder="Search" "="">
+                        </div>
+
+                        <div class=" form-group d-flex my-1 text-black-50">
+                            <label for="sortBy" class="col-form-label mr-1 form-control-sm">Sort by: </label>
+                            <div class="flex-grow-1">
+                                <select class="form-control form-control-plaintext text-black-50 form-control-sm" id="sortBy" on-change="_sortByChange">
+                                    <option value="title">OPC Name</option>
+                                    <option value="URL">URL</option>
+                                    <option value="Description">Description</option>
+                                </select>
+                            </div>
+                            <div id="sortUA" class="ml-1 col-form-label form-control-sm" on-tap="_reverseSort">
+                                <i id="sortIconUA" class="fas fa-arrow-down"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-container position-sticky ">
+                        <ul id="opc_list__body" class="list-group list-group-flush" on-scroll="_updateClass">
+                            <template is="dom-repeat" items="{{listItems}}" as="listItem" filter="{{_computeFilter(_query)}}" sort="{{_computeSort(sortBy,sortOrder)}}">
+                                <li id$="[[listItem.opcua_name]]" data-listid$="[[index]]" on-tap="_getopcUATag" data-opcpanel="opcUACheck" data-opcuaunit$="{{listItem.opcua_name}}" class$="list-group-item   list-group-item-action pointer {{_computeClass(selectedItem,listItem.opcua_name)}}">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <div class="position-absolute">
+                                            <i class$="fas fa-circle type-{{listItem.type}} opcUAtatus {{listItem.priority}}"></i>
+                                        </div>
+                                        <div class="text-left pl-4 col-md-12">
+                                            <template is="dom-if" if="{{listItem.opcua_name}}">
+                                                <div class="d-flex align-items-baseline">
+                                                    <div class="title flex-fill">[[index]]: {{listItem.opcua_name}}
+                                                    </div>
+                                                    <i class="fas fa-cog float-right editPanel" data-listid$="[[index]]" on-tap="_editopcUA"></i>
+                                                </div>
+                                            </template>
+                                            <template is="dom-if" if="{{listItem.url}}">
+                                                <small class="subtitle text-black-50">URL:
+                                                    {{listItem.url}}</small>
+                                            </template>
+                                            <template is="dom-if" if="{{listItem.description}}">
+                                                <div class="time small text-black-50">Description :
+                                                    {{listItem.description}}
+                                                </div>
+                                            </template>
+
+                                        </div>
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+                <template is="dom-if" if="[[addopcUACheck]]">
+                    <div class="h-100 w-25 bg-light">
+                        <div class=" flex-column pt-2  h-100 border-right">
+                            <div class="px-3">
+                                <div class="d-flex pb-1 mb-1 header">
+                                    <div class="col-form-label py-0 flex-fill h6" for="opcUA">Add OPC-UA
+                                    </div>
+                                </div>
+                                <hr class="m-0">
+                                <form id="addopcUA" onsubmit="return false">
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="opcName">Name</label>
+                                        <input required="" type="text" class="form-control" id="opcName" onkeypress="return event.charCode >= 48" pattern="[a-zA-Z][a-zA-Z0-9\s_.]*" name="opcName">
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="description">Description</label>
+                                        <textarea required="" type="text" class="form-control" pattern="[a-zA-Z][a-zA-Z0-9\s_.]*" id="description" name="description"></textarea>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="opcURL">URL</label>
+                                        <input required="" type="text" class="form-control" id="opcURL" name="opcURL">
+                                    </div>
+                                    <template is="dom-if" if="[[addOPCApiAlerts]]">
+                                        <div style="z-index:10;" class="alert alert-info mb-0 alert-dismissible fade show mb-2" role="alert">
+                                            <span id="addOPCApiAlerts">[[addOPCApiAlerts]]</span>
+                                        </div>
+                                    </template>
+                                    <div class="d-flex flex-row">
+                                        <button type="reset" data-opcpanel="addopcUACheck" class="btn btn-secondary btn-sm col-md-6 mr-1" on-click="_cancelPanel">Cancel</button>
+                                        <button type="submit" class="btn btn-primary btn-sm col-md-6" on-click="_saveopcUA">Save</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <template is="dom-if" if="[[editopcUACheck]]" restamp="">
+                    <div class="h-100 w-25 bg-light">
+                        <div class=" flex-column pt-2  h-100 border-right">
+                            <div class="px-3">
+                                <div class="d-flex pb-1 mb-1 header">
+                                    <div class="col-form-label py-0 flex-fill h6" for="opcUA">Edit OPC-UA
+                                    </div>
+                                </div>
+                                <hr class="m-0">
+                                <form id="editopcUAform" onsubmit="return false">
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="opcName">Name</label>
+                                        <input readonly="" type="text" class="form-control" id="editopcName" value="{{selectedTagAlert.opcua_name}}" name="opcName" onkeypress="return event.charCode >= 48" pattern="[a-zA-Z][a-zA-Z0-9\s_.]*">
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="description">Description</label>
+                                        <textarea required="" type="text" value="{{selectedTagAlert.description}}" class="form-control" id="editdescription" pattern="[a-zA-Z][a-zA-Z0-9\s_.]*" name="{{selectedTagAlert.description}}"></textarea>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="opcURL">URL</label>
+                                        <input required="" type="text" class="form-control" id="editopcURL" value="{{selectedTagAlert.url}}" name="opcURL">
+                                    </div>
+                                    <template is="dom-if" if="[[editOPCApiAlerts]]">
+                                        <div style="z-index:10;" class="alert alert-info mb-0 alert-dismissible fade show mb-2" role="alert">
+                                            <span id="editOPCApiAlerts">[[editOPCApiAlerts]]</span>
+                                        </div>
+                                    </template>
+                                    <div class="d-flex flex-row  mb-2">
+                                        <button type="reset" data-opcpanel="editopcUACheck" class="btn btn-light btn-sm col-md-6 mr-1" on-click="_cancelPanel">Cancel</button>
+                                        <button type="button" class="btn btn-secondary btn-sm col-md-6 mr-1" on-click="_removeopcUA">Delete</button>
+                                    </div>
+                                    <div class="d-flex flex-row">
+                                        <button type="submit" class="btn btn-primary btn-sm col-md-12 " on-click="_updateopcUA">Save</button>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <template is="dom-if" if="[[listUnitItems]]" restamp="">
+                    <opc-ua-tag-list class="w-25" list-unit-items="{{listUnitItems}}" list-selected-unit="{{selectedUnit}}" disable-auto-select="true" sort-order="ascending">
+                    </opc-ua-tag-list>
+                </template>
+            </div>
+        </div>
+        <global-var name="selectedUATag" value="{{selectedUATag}}"></global-var>
+        <global-var name="selectedTagAlert" value="{{selectedTagAlert}}"></global-var>
+        <global-loader>
+            <iron-ajax method="POST" id="e_addOPCUA" body="{{formData}}" url="/addOPCUAInstance/[[opcName]]/[[opcURL]]/[[description]]" on-response="_onResponse_addOPCUA" on-error="_onError">
+            </iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="e_updateOPCUA" url="/updateOPCUAInstance/[[opcName]]/[[opcURL]]/[[description]]" on-response="_onResponse_updateOPCUA" on-error="_onError">
+            </iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="e_removeOPCUA" url="/deleteOPCUAInstance/[[opcName]]" on-response="_onResponse_removeOPCUA" on-error="_onError">
+            </iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="getOPCUATag" url="/getOPCUATag/{{opcUnit}}" on-response="_onResponse_getOPCUATag" on-error="_onError"></iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="getOPCUAInstance" url="/getOPCUAInstance" last-response="{{listData}}" on-response="_onResponse_getOPCUAInstance" on-error="_onError"></iron-ajax>
+        </global-loader>
+    </template>
+
+    <script>Polymer({is:"opc-ua-list",behaviors:[Polymer.IronResizableBehavior],listeners:{"iron-resize":"_calculateBounds"},properties:{listItems:{type:Array,notify:!0},selectedItem:{type:String,notify:!0},_query:{type:String},sortBy:{type:String,value:"title"},sortOrder:{type:String,value:"ascending"},disableAutoSelect:{type:Boolean,value:!1}},created:function created(){document.documentElement.classList.remove("in-progress")},attached:function attached(){this.async(function(){$("[data-toggle=\"tooltip\"]").tooltip()})},detached:function detached(){},attributeChanged:function attributeChanged(name,type){},ready:function ready(){},_getopcUATag:function _getopcUATag(e){root=this;var section=e.currentTarget.dataset.opcpanel;root.addopcUACheck=!1;root.editopcUACheck=!1;root.selectedUnit=root.opcUnit=e.currentTarget.dataset.opcuaunit;root.$.getOPCUATag.generateRequest();var seclectedTagId=e.currentTarget.id;document.getElementById(seclectedTagId).classList.add("active");root.selectedItem=document.getElementById(seclectedTagId).id},_editopcUATag:function _editopcUATag(evt){root=this;root.editopcUATagCheck=!0;root.addopcUATagCheck=!1;for(var seclectedTagId=evt.currentTarget.dataset.listid,i=0;i<root.listUnitItems.length;i++){if(i==seclectedTagId){root.selectedUATag=root.listUnitItems[i]}}},_computeClass:function _computeClass(selectedId,id){return selectedId&&selectedId+""===id+""?"active":""},_calculateBounds:function _calculateBounds(evt){this.debounce("resize",function(){if(700>this.getBoundingClientRect().width){this.toggleClass("constrained",!0,this.$.list);this.toggleClass("constrained",!0,this.$.detail);this.toggleClass("detail-active",!1,this.$.list);this.toggleClass("list-active",!0,this.$.detail)}else{this.toggleClass("constrained",!1,this.$.list);this.toggleClass("constrained",!1,this.$.detail);this.toggleClass("detail-active",!0,this.$.list);this.toggleClass("list-active",!1,this.$.detail)}},300)},_goBackToList:function _goBackToList(evt){this.toggleClass("detail-active",!1,this.$.list);this.toggleClass("list-active",!0,this.$.detail)},_computeFilter:function _computeFilter(query){if(!query){return null}else{query=query.toLowerCase();return function(listItem){var title=listItem.opcua_name.toLowerCase(),URL=listItem.url.toLowerCase(),Description=listItem.description.toLowerCase();return-1!=title.indexOf(query)||-1!=URL.indexOf(query)||-1!=Description.indexOf(query)}}},_computeSort:function _computeSort(sortBy,sortOrder){sortBy=sortBy?sortBy.toLowerCase().replace(/\s+/g,""):"";var asc="ascending"===sortOrder;if(asc){return function(a,b){return a[sortBy]<b[sortBy]?-1:a[sortBy]>b[sortBy]?1:-1}}else if(!asc){return function(b,a){return a[sortBy]<b[sortBy]?-1:a[sortBy]>b[sortBy]?1:0}}},_reverseSort:function _reverseSort(e){var id=e.currentTarget.id,sectionId=id.slice(4,20),sort="sortIcon"+sectionId;this.async(function(){if("ascending"===this.sortOrder){this.sortOrder="descending";this.$[sort].classList.value="fas fa-arrow-up"}else if("descending"===this.sortOrder){this.sortOrder="ascending";this.$[sort].classList.value="fas fa-arrow-down"}})},_updateClass:function _updateClass(){this.debounce("_updateClass",function(){if(0<this.$.list__body.scrollTop){this.toggleClass("shadow-component",!0,Polymer.dom(this.root).querySelector(".list__header"))}else{this.toggleClass("shadow-component",!1,Polymer.dom(this.root).querySelector(".list__header"))}},50)},_editopcUA:function _editopcUA(evt){evt.stopPropagation();root=this;root.listUnitItems=!1;for(var seclectedTagId=evt.currentTarget.dataset.listid,i=0;i<root.listItems.length;i++){if(i==seclectedTagId){root.selectedTagAlert=root.listItems[i]}}if(!root.editopcUACheck){root.addopcUATagCheck=!1;root.editopcUATagCheck=!1;root.addopcUACheck=!1;root.editopcUACheck=!0}},_sortByChange:function _sortByChange(e){this.set("sortBy",e.target.value)},_saveopcUA:function _saveopcUA(){root=this;if(root.$$("#addopcUA").checkValidity()){root.opcName=root.$$("#opcName").value;root.description=root.$$("#description").value;root.opcURL=encodeURIComponent(root.$$("#opcURL").value);root.$.e_addOPCUA.generateRequest()}},_onResponse_addOPCUA:function _onResponse_addOPCUA(e){root=this;root.addOPCApiAlerts=e.detail.response.status;this.async(function(){root.addOPCApiAlerts=!1},5e3);document.getElementById("getopcUA").generateRequest()},_onResponse_updateOPCUA:function _onResponse_updateOPCUA(e){root=this;root.editOPCApiAlerts=e.detail.response.status;this.async(function(){root.editOPCApiAlerts=!1},5e3);document.getElementById("getopcUA").generateRequest()},_updateopcUA:function _updateopcUA(){root=this;if(root.$$("#editopcUAform").checkValidity()){root.opcName=root.$$("#editopcName").value;root.opcURL=encodeURIComponent(root.$$("#editopcURL").value);root.description=root.$$("#editdescription").value;root.$.e_updateOPCUA.generateRequest()}},_removeopcUA:function _removeopcUA(){root=this;root.opcName=root.$$("#editopcName").value;root.$.e_removeOPCUA.generateRequest()},_onResponse_removeOPCUA:function _onResponse_removeOPCUA(e){root=this;root.editOPCApiAlerts=e.detail.response.status;this.async(function(){root.editOPCApiAlerts=!1;root.editopcUACheck=!1},5e3);document.getElementById("getopcUA").generateRequest()},_onResponse_addOPCUATag:function _onResponse_addOPCUATag(e){root=this;root.addOPCTagApiAlerts=e.detail.response.status;this.async(function(){root.addOPCTagApiAlerts=!1;root.addopcUATagCheck=!1},5e3);document.getElementById("getOPCUATag").generateRequest()},_saveopcUATag:function _saveopcUATag(){root=this;if(root.$$("#addopcUATag").checkValidity()){root.opcName=root.$$("#opcUnitName").value;root.tagName=root.$$("#opcName").value;root.opcuaTagName=root.$$("#opcTagName").value;root.description=root.$$("#description").value;root.$.e_addOPCUATag.generateRequest()}},_onResponse_updateOPCUATag:function _onResponse_updateOPCUATag(e){root=this;root.editOPCTagApiAlerts=e.detail.response.status;this.async(function(){root.editOPCTagApiAlerts=!1},5e3);document.getElementById("getOPCUATag").generateRequest()},_onResponse_deleteOPCUATag:function _onResponse_deleteOPCUATag(e){root=this;root.editOPCTagApiAlerts=e.detail.response.status;this.async(function(){root.editOPCTagApiAlerts=!1;root.editopcUATagCheck=!1},5e3);document.getElementById("getOPCUATag").generateRequest()},_removeOpcUATag:function _removeOpcUATag(){root=this;root.opcName=root.$$("#editopcUnitName").value;root.tagName=root.$$("#editopcName").value;root.$.e_deleteOPCUATag.generateRequest()},_cancelPanel:function _cancelPanel(e){root=this;var section=e.currentTarget.dataset.opcpanel;if("listUnitItems"==section){root.addopcUATagCheck=!1;root.editopcUATagCheck=!1}root[section]=!1},_openPanel:function _openPanel(e){root=this;var section=e.currentTarget.dataset.opcpanel;if("addopcUATagCheck"==section){root[section]=!0;root.editopcUATagCheck=!1}else if("editopcUATagCheck"==section){root[section]=!0;root.addopcUATagCheck=!1}else if("addopcUACheck"==section){root.addopcUATagCheck=!1;root.editopcUATagCheck=!1;root.editopcUACheck=!1;root.listUnitItems=!1}else if("editopcUACheck"==section){root.addopcUATagCheck=!1;root.editopcUATagCheck=!1;root.addopcUACheck=!1;root.listUnitItems=!1}root[section]=!0},_updateopcUATag:function _updateopcUATag(){root=this;if(root.$$("#editopcUATag").checkValidity()){root.opcName=root.$$("#editopcUnitName").value;root.tagName=root.$$("#editopcTagName").value;root.opcuaTagName=root.$$("#editopcName").value;root.description=root.$$("#editdescription").value;root.$.e_updateOPCUATag.generateRequest()}},_onResponse_getOPCUATag:function _onResponse_getOPCUATag(e){root=this;root.listUnitItems=e.detail.response}});</script>
+
+</dom-module></div><dom-module id="view-opc-ua">
+
+    <template>
+        <opc-ua-list list-items="{{listData}}" disable-auto-select="true" on-selected-item-changed="_updateDetails" sort-order="ascending">
+        </opc-ua-list>
+        <global-loader>
+            <iron-ajax auto="" method="POST" id="getopcUA" url="/getOPCUAInstance" last-response="{{listData}}" on-response="_onResponse_searchTag" on-error="_onError"></iron-ajax>
+        </global-loader>
+    </template>
+
+    <script>Polymer({is:"view-opc-ua",properties:{itemData:{type:Object,value:function value(){return null}}},created:function created(){document.documentElement.classList.remove("in-progress")},ready:function ready(){},attached:function attached(){},detached:function detached(){},attributeChanged:function attributeChanged(name,type){},_updateDetails:function _updateDetails(e){var selectedItem=e.target.listItems.find(function(item){return parseInt(item.id)===parseInt(e.detail.value)});this.set("itemData",selectedItem)}});</script>
+
+</dom-module>

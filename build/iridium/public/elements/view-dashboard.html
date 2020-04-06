@@ -1,0 +1,51 @@
+<div hidden="" by-polymer-bundler=""><dom-module id="dashboard-graph" assetpath="dashboard-graph/">
+
+    <template>
+        <global-loader>
+            <iron-ajax auto="" url$="http://ec2-54-88-0-215.compute-1.amazonaws.com:84/getVisualizationData/{{graphId}}/{{_timezoneConverter(start)}}/{{_timezoneConverter(end)}}" headers="{&quot;Content-Type&quot;: &quot;application/json&quot;,&quot;username&quot;:&quot;administrator&quot;,&quot;password&quot;:&quot;7eRmina7oR&quot;}" handle-as="json" on-response="_handleResponse" debounce-duration="300"></iron-ajax>
+        </global-loader>
+        <div class="graph-wrapper p-3">
+            <div class$="{{graphClasses}}">
+
+                <template is="dom-if" if="{{graphLastValue}}">
+                    <div class="graph-header pt-2 pl-3">
+                        <div class="h4 font-weight-light text-muted m-0">{{graphName}}</div>
+                        <div>
+                            <span class="h3">{{graphLastValue}}</span>
+                            <span class="text-muted" style="vertical-align: super;">{{graphUnit}}</span>
+                        </div>
+                    </div>
+                </template>
+
+                <div id="graph"></div>
+
+                <template is="dom-if" if="{{graphMessage}}">
+                    <div class="text-muted p-3 pt-2">{{graphMessage}}</div>
+                </template>
+            </div>
+        </div>
+    </template>
+
+    <script>Polymer({is:"dashboard-graph",properties:{},created:function created(){},ready:function ready(){},attached:function attached(){root=this;root.end=new Date;root.start=Date.parse(root.end)-36e5},detached:function detached(){},attributeChanged:function attributeChanged(name,type){},_getRandomRolor:function _getRandomRolor(){for(var letters="0123456789ABCDEF".split(""),color="#",i=0;6>i;i++){color+=letters[Math.round(10*Math.random())]}return color},_timezoneConverter:function _timezoneConverter(UNIX_timestamp){var a=new Date(UNIX_timestamp),year=a.getFullYear(),month=a.getMonth()+1,date=a.getDate(),hour=a.getHours(),min=a.getMinutes(),sec=a.getSeconds(),time=year+"-"+month+"-"+date+" "+hour+":"+min+":"+sec;return time},_handleResponse:function _handleResponse(e){var _root=this,_graph=this.$.graph,_data=e.detail.response.data,_color=_root._getRandomRolor();_root.graphClasses="bg-white border graph-container overflow-hidden rounded shadow-sm";if(!_data){_root.graphMessage=e.detail.response.status;_root.parentElement.remove();return}this.graphLastValue=_data?_data.slice(-1)[0][1]:"";var hightStockChart=new Highcharts.stockChart({chart:{renderTo:_graph,backgroundColor:"transparent",height:100*(9/27)+"%",spacingBottom:0,spacingLeft:0,spacingRight:0,style:{fontFamily:"serif"}},title:{enabled:!1},navigator:{enabled:!1},rangeSelector:{enabled:!1},scrollbar:{enabled:!1},series:[{type:"spline",name:"Value",data:_data,lineColor:_color,lineWidth:1,tooltip:{valueDecimals:2,valuePrefix:"",valueSuffix:" "+(_root.graphUnit?_root.graphUnit:"")},states:{hover:{halo:{size:9,attributes:{fill:"transparent","stroke-width":1,stroke:"#333"}}}}}],xAxis:{visible:!1,labels:{enabled:!1}},yAxis:{visible:!0,labels:{enabled:!1},tickAmount:10},tooltip:{shared:!0,outside:!0,split:!1,borderColor:_color,borderWidth:1,borderRadius:10,shadow:!1,style:{color:"#3a3a3a",cursor:"default",fontSize:"12px",pointerEvents:"none",whiteSpace:"nowrap"}}})}});</script>
+
+</dom-module></div><dom-module id="view-dashboard">
+
+    <template>
+        <global-loader>
+            <iron-ajax auto="" url="/getTagList" last-response="{{tagDataList}}"></iron-ajax>
+        </global-loader>
+
+        <div class="container-fuild bg-light min-vh-100">
+            <div class="row no-gutters">
+                <template is="dom-repeat" items="{{tagDataList}}">
+                    <div class="col col-12 col-sm-6 col-lg-4 col-xl-3">
+                        <dashboard-graph graph-id="{{item.tag_id}}" graph-name="{{item.tag_name}}"></dashboard-graph>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </template>
+
+    <script>Polymer({is:"view-dashboard",properties:{},created:function created(){document.documentElement.classList.remove("in-progress")},ready:function ready(){},attached:function attached(){},detached:function detached(){},attributeChanged:function attributeChanged(name,type){}});</script>
+
+</dom-module>

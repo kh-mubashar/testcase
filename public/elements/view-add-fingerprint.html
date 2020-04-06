@@ -1,0 +1,629 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-router/app-router.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<dom-module id="view-add-fingerprint">
+
+    <template>
+        <style>
+            .nav-link.active {
+                background: #dee2e6;
+            }
+
+            ::content .value-based-container {
+                overflow-y: auto;
+                background: #dee2e6;
+            }
+
+            @media (max-width: 575.98px) {
+                ::content .value-based-container {
+                    width: 100% !important;
+                }
+            }
+
+            @media (max-width: 1199.98px) {
+                ::content .value-based-container {
+                    width: 340px !important;
+                }
+            }
+
+            .searchResult {
+                position: absolute;
+                top: 38px;
+                left: 0;
+                width: 100%;
+                z-index: 1;
+            }
+
+            .searchResult .list-group .list-group-item {
+                cursor: pointer !important;
+            }
+
+            .searchResult .list-group .list-group-item div {
+                word-wrap: break-word;
+            }
+
+            .form-icon {
+                font-size: 20px;
+                cursor: pointer;
+            }
+
+            .hr-text {
+                line-height: 1em;
+                position: relative;
+                outline: 0;
+                border: 0;
+                color: #343a40;
+                text-align: center;
+                height: 1.5em;
+                margin: 0;
+
+            }
+
+            .hr-text:before {
+                content: '';
+                background: linear-gradient(to right, transparent, #818078, transparent);
+                position: absolute;
+                left: 0;
+                top: 50%;
+                width: 100%;
+                height: 1px;
+            }
+
+            .hr-text:after {
+                content: attr(data-content);
+                position: relative;
+                display: inline-block;
+                padding: 0 .5em;
+                line-height: 1.5em;
+                color: #343a40;
+                background-color: #dee2e6;
+            }
+
+            .TagHeading {
+                font-size: 17px;
+            }
+
+            .TagDesc {
+                font-size: 13px;
+            }
+
+            .fas,
+            .far {
+                cursor: pointer;
+            }
+
+            .alert-info {
+                z-index: 10;
+            }
+
+            ::content .highcharts-legend-item-hidden tspan {
+                fill: #ccc !important;
+            }
+
+            .fa-info-circle {
+                outline-color: transparent;
+                text-decoration: none;
+                color: #343a40;
+                cursor: pointer;
+                font-size: 16px;
+            }
+        </style>
+
+        <div class="container-fluid h-100 container-with-sidebar">
+            <div class="d-flex h-100">
+                <nav class="bg-light sidebar position-fixed h-100 text-center border-right">
+                    <ul class="sub-nav nav flex-lg-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 " href="#/alerts" data-toggle="tooltip"
+                                data-placement="right" title="Alerts">
+                                <i class="fas fa-bell"></i>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 active" href="#/alerts/fingerprint"
+                                data-toggle="tooltip" data-placement="right" title="Pattern Match">
+                                <i class="fas fa-fingerprint"></i>
+                            </a>
+                        </li>
+
+                    </ul>
+                </nav>
+
+
+                <div class="value-based-container h-100 w-25">
+                    <div class=" flex-column pt-2  h-100 border-right">
+                        <div class="px-3">
+                            <div class="lead pb-2 d-flex justify-content-between  border-bottom border-light mb-2">
+                                <span><i on-tap="_backTofingerprint" class="far fa-arrow-alt-circle-left"></i><strong>
+                                        Add
+                                        Alert</strong></span>
+
+                                <a href="JavaScript:(0);" title="Add Alert" data-toggle="popover" data-html="true"
+                                    data-placement="bottom" data-trigger="focus"
+                                    data-content="description to be added"><i class="fas fa-info-circle "></i></a>
+                            </div>
+                            <form id="addAlarmForm" onsubmit="return false">
+                                <div style="position:relative;" class="form-group mb-2 d-flex flex-row">
+                                    <input type="text" required autocomplete="off" class="form-control"
+                                        placeholder="Search tag" id="searchedTag" name="searchedTag"
+                                        value="{{searchedTagNameValue}}">
+                                    <template is="dom-if" if="{{tagSearchResult}}">
+                                        <div class="searchResult">
+                                            <ul class="list-group">
+                                                <template is="dom-repeat" items="[[tagSearchResult]]" as="tagResults">
+                                                    <li on-click="_addTag" data-tagSelected$="[[tagResults.tag_id]]"
+                                                        data-tagName$="[[tagResults.tag_name]]"
+                                                        class="border-none  list-group-item px-2 py-1 border-top rounded-0">
+                                                        <div class="h6 mb-0">[[tagResults.tag_name]]</div>
+                                                        <div class="text-black-50 mb-0 text-wrap">
+                                                            [[tagResults.description]]
+                                                        </div>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="similarityPriority">Priority</label>
+                                    <select required class="form-control" name="similarityPriority" on-change=""
+                                        id="similarityPriority">
+                                        <option>High </option>
+                                        <option>Medium</option>
+                                        <option>Low</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="startDate">Start Date</label>
+                                    <input id="startDate" type="text" class="form-control" name="startDate" />
+                                </div>
+                                <div class="form-group mb-2 mt-2">
+                                    <label for="similarityPercentage" class="col-form-label py-1">Minimum score
+                                        (0%-100%)</label>
+                                    <div class="d-flex justify-content-between">
+                                        <input required type="number" min="0" onkeypress="return event.charCode >= 48"
+                                            max="100" class="form-control  " on-change="" name="similarityPercentage"
+                                            id="similarityPercentage">
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="alarmName">Name</label>
+                                    <input required type="text" class="form-control" id="alarmName" name="alarmName" />
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label class="col-form-label py-1" for="description">Description</label>
+                                    <textarea required type="text" class="form-control" id="description"
+                                        name="description"></textarea>
+                                </div>
+                                <div class="custom-control custom-switch mb-2">
+                                    <input type="checkbox" class="custom-control-input" id="addfingerprinttatus">
+                                    <label class="custom-control-label" for="addfingerprinttatus">Active</label>
+                                </div>
+                                <div class="custom-control custom-switch mb-2">
+                                    <input type="checkbox" class="custom-control-input" on-click="_addAlarmNotificaiton"
+                                        id="addAlarmNotificaiton">
+                                    <label class="custom-control-label" for="addAlarmNotificaiton">Notification</label>
+                                </div>
+                                <template is="dom-if" if="[[AlarmNotificaiton]]">
+                                    <div class="form-group mb-2">
+                                        <label class="col-form-label py-1" for="addEmail">Email</label>
+                                        <input type="email" class="form-control" id="addEmail" placeholder="Email">
+                                    </div>
+                                </template>
+                                <div class="d-flex flex-row">
+                                    <button type="submit" class="btn btn-primary btn-sm btn-block"
+                                        on-click="_performSimilaritySearch">Save</button>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+                <main role="main" class="p-3 pb-0 flex-grow-1">
+                    <template is="dom-if" if="[[trendAlerts]]">
+                        <div style="z-index:10;" class="alert alert-info mb-0 alert-dismissible fade show mb-2"
+                            role="alert">
+                            <span id="trendAlerts">[[trendAlerts]]</span>
+                        </div>
+                    </template>
+                    <div class="container-fluid" style="position:relative;">
+                        <div class="row">
+                            <template is="dom-if" if="[[tagTrends]]">
+                                <input id="daterange" type="text" class="form-control" name="datetimes"
+                                    style="width: 300px;position: absolute;top:15px;right: 5px;z-index: 1" />
+                            </template>
+                            <div id="container" class="mt-3" style="width: 100%; height: 85vh;"></div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+
+        <global-loader>
+            <iron-ajax auto id="e_searchTag" url="/getTagList" last-response="{{tagDataList}}"
+                on-response="_onResponse_searchTag" on-error="_onError"></iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax id="e_getTagTrends" last-response="{{tagTrends}}" on-response="_onResponse_getTagTrends"
+                headers='{"Content-Type": "application/json","username":"administrator","password":"7eRmina7oR"}'
+                handle-as="json" on-error="_onError_getTagTrends">
+            </iron-ajax>
+        </global-loader>
+        <global-loader>
+            <iron-ajax method="POST" id="e_createFingerPrint" handle-as="json" url="/createFingerPrint"
+                body="{{bodyData}}" handle-as="json" content-type="application/json"
+                on-response="_onResponse_createFingerPrint" on-error="_onError_createFingerPrint">
+            </iron-ajax>
+        </global-loader>
+    </template>
+
+    <script>
+        Polymer({
+            is: "view-add-fingerprint",
+
+            created: function () {
+                /* console.log(this.localName + '#' + this.id + ' was created'); */
+                document.documentElement.classList.remove('in-progress');
+            },
+            attached: function () {
+                /* console.log(this.localName + '#' + this.id + ' was attached'); */
+                this.async(function () {
+                    $('[data-toggle="tooltip"]').tooltip();
+                    $('[data-toggle="popover"]').popover();
+
+                });
+            },
+            ready: function () {
+                root = this;
+
+                root.searchedTagValue
+                root.dataPattern = [];
+                root.selectedDateRange = []
+                root.endDateRange = new Date();
+                root.startDateRange = Date.parse(root.endDateRange) - 86400000;
+                root.searchStartDateRange;
+                root.searchEndDateRange;
+                root.seriesData;
+                root.fingerprinttartDate = root._timeConverter(new Date());
+                // root.pointStart;
+
+                $(function () {
+                    $('input[name="startDate"]').daterangepicker({
+                        singleDatePicker: true,
+                        showDropdowns: true,
+                        timePicker: true,
+                        maxDate: moment(),
+                        startDate: moment(),
+                        maxYear: parseInt(moment().format('YYYY'), 10),
+                        locale: {
+                            format: 'M/DD/YYYY HH:mm'
+                        }
+                    }, function (start, end, label) {
+                        root.fingerprinttartDate = start.format('YYYY-MM-DD HH:mm:ss');
+
+                    });
+                });
+
+
+
+            },
+            _timeConverter: function (UNIX_timestamp) {
+                var a = new Date(UNIX_timestamp);
+                var year = a.getFullYear();
+                var month = a.getMonth() + 1;
+                var date = a.getDate();
+                var hour = a.getHours();
+                var min = a.getMinutes();
+                var sec = a.getSeconds();
+                var time = year + '-' + month + '-' + date + ' ' + hour + ':' + min + ':' + sec;
+                return time;
+            },
+            _getTrends: function (tag) {
+                root = this;
+                var start = root.startDateRange;
+                var end = root.endDateRange;
+                root.startDateRange = this._timeConverter(start);
+                root.endDateRange = this._timeConverter(end)
+                root.searchStartDateRange = root.endDateRange;
+                root.searchEndDateRange = root.startDateRange;
+                root.$.e_getTagTrends.url = 'http://ec2-54-88-0-215.compute-1.amazonaws.com:84/getVisualizationData/' + tag + '/' + this._timeConverter(start) + '/' + this._timeConverter(end);
+                root.$.e_getTagTrends.generateRequest();
+            },
+            _addTag: function (e) {
+                var root = this;
+                root.tagSearchResult = false;
+                root.searchedTagValue = e.currentTarget.dataset.tagselected;
+                root.searchedTagNameValue = e.currentTarget.dataset.tagname;
+                root._getTrends(e.currentTarget.dataset.tagselected);
+            },
+            _onResponse_getTagTrends: function (e) {
+                root.seriesData = e.detail.response.data
+                $(function () {
+                    $('input[name="datetimes"]').daterangepicker({
+                        timePicker: true,
+                        showDropdowns: true,
+                        timePicker24Hour: true,
+                        timePickerSeconds: false,
+                        alwaysShowCalendars: true,
+                        maxDate: moment().startOf('hour'),
+                        opens: "left",
+                        ranges: {
+                            'Today': [moment(), moment()],
+                            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                            'This Month': [moment().startOf('month'), moment().endOf('month')],
+                            'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                        },
+                        // startDate: moment().subtract(1, 'day'),
+                        // endDate: moment().startOf('hour'),
+                        locale: {
+                            format: 'M/DD/YYYY HH:mm'
+                        },
+                    }, function (start, end, label) {
+                        root.startDateRange = start.format('YYYY-MM-DD HH:mm:ss');
+                        root.endDateRange = end.format('YYYY-MM-DD HH:mm:ss');
+                        if (root.searchedTagValue) {
+                            root.$.e_getTagTrends.url = 'http://ec2-54-88-0-215.compute-1.amazonaws.com:84/getVisualizationData/' + root.searchedTagValue + '/' + start.format('YYYY-MM-DD HH:mm:ss') + '/' + end.format('YYYY-MM-DD HH:mm:ss');
+                            root.$.e_getTagTrends.generateRequest();
+                        }
+                    });
+                });
+                if (e.detail.response.data) {
+                    var seriesData = e.detail.response.data;
+                    Highcharts.Chart.prototype.unselectAll = function () {
+                        for (var i = 0; i < this.series[0].data.length; i++) {
+                            root.selectedDateRange = []
+                        }
+                    };
+                    function unselectByClick() {
+                        for (var i = 0; i < this.series[0].data.length; i++) {
+                            root.selectedDateRange = [];
+                        }
+                    };
+
+                    var chart = new Highcharts.Chart({
+
+                        chart: {
+                            renderTo: 'container',
+                            events: {
+                                click: unselectByClick,
+                                selection: function (event) {
+                                    var data = [];
+                                    chart.unselectAll();
+                                    chart.xAxis[0].removePlotBand('plot-band');
+                                    if (this.series[0].data.length > 0)
+                                        for (var i = 0; i < this.series[0].data.length; i++) {
+                                            var point = this.series[0].data[i];
+                                            // if (point) {
+                                            if (point.x > event.xAxis[0].min &&
+                                                point.x < event.xAxis[0].max) {
+                                                data.push(point.y);
+                                                root.selectedDateRange.push(point.x);
+                                                this.xAxis[0].addPlotBand({
+                                                    from: root.selectedDateRange[0],
+                                                    to: root.selectedDateRange[root.selectedDateRange.length - 1],
+                                                    color: '#F0F0C0',
+                                                    id: 'plot-band',
+                                                });
+
+                                            }
+                                        }
+                                    else {
+                                        root.trendAlerts = true;
+                                        root.trendAlerts = 'Select a smaller DataSet';
+                                        root.async(function () {
+                                            root.trendAlerts = false;
+                                        }, 3000);
+                                    }
+                                    root.dataPattern = [];
+                                    root.dataPattern = data;
+                                    for (var j = 0; j < root.dataPattern.length; j++) {
+                                        for (var i = 0; i < seriesData.length; i++) {
+                                            if (seriesData[i][1] == root.dataPattern[j]) {
+                                                var point = this.series[1].data[i];
+                                            }
+                                        }
+                                    }
+                                    return false;
+                                }
+                            },
+                            zoomType: 'x'
+                        },
+                        boost: {
+                            useGPUTranslations: true
+                        },
+                        xAxis: [{
+                            gridLineWidth: 1,
+                            gridLineDashStyle: 'solid',
+                            type: 'datetime'
+                        }, {
+                            type: 'datetime',
+                            visible: false
+                        }],
+                        yAxis: [{
+                            gridLineWidth: 0,
+                            gridLineDashStyle: 'solid',
+                            title: {
+                                text: ''
+                            }
+                        }],
+                        rangeSelector: {
+                            enabled: true,
+                            selected: 8,
+                            inputEnabled: false,
+                            buttonPosition: {
+                                align: 'left'
+                            },
+                            labelStyle: {
+                                display: 'none'
+                            },
+                            buttons: [{
+                                type: 'hour',
+                                count: 0,
+                                text: '1h'
+                            }, {
+                                type: 'day',
+                                count: 0,
+                                text: '1d'
+                            }, {
+                                type: 'week',
+                                count: 0,
+                                text: '1w'
+                            }, {
+                                type: 'month',
+                                count: 1,
+                                text: '1m'
+                            }, {
+                                type: 'month',
+                                count: 3,
+                                text: '3m'
+                            }, {
+                                type: 'month',
+                                count: 6,
+                                text: '6m'
+                            }, {
+                                type: 'ytd',
+                                text: 'YTD'
+                            }, {
+                                type: 'year',
+                                count: 1,
+                                text: '1y'
+                            }, {
+                                type: 'all',
+                                text: 'All'
+                            }]
+                        },
+                        legend: {
+                            enabled: true,
+                            allButtonsEnabled: true,
+                            borderColor: '#ced4da',
+                            borderRadius: '5px',
+                            borderWidth: 1,
+                            labelFormatter: function () {
+                                return '<span style="fill: ' + this.color + '">' + this
+                                    .name + '</span>';
+                            },
+                            symbolPadding: 0,
+                            symbolWidth: 0,
+                            symbolRadius: 0
+                        },
+                        title: {
+                            text: null,
+                            enabled: false
+                        },
+                        tooltip: {
+                            xDateFormat: '%d/%m/%Y %H:%M:%S',
+                            shared: true
+                        },
+                        navigator: {
+                            enabled: true,
+                            height: 60
+                        },
+                        series: [
+                            {
+                                name: root.searchedTagNameValue,
+                                data: seriesData,
+                                showInNavigator: true,
+                                dataGrouping: {
+                                    enabled: false
+                                }
+                            }
+                        ]
+                    });
+                } else {
+                    root.trendAlerts = e.detail.response.status;
+                    this.async(function () {
+                        root.trendAlerts = false;
+                    }, 5000);
+                }
+            },
+            _onResponse_searchTag: function (e) {
+                var root = this;
+                var tagList = e.detail.response;
+                root.$.searchedTag.addEventListener('input', function (e) {
+                    var inputTag = e.currentTarget.value.toLowerCase();
+                    if (inputTag) {
+                        var filteredTag = tagList.filter(function (arr, key) {
+                            return (arr.tag_id.toLowerCase().indexOf(inputTag) != -1 || arr.description.toLowerCase().indexOf(inputTag) != -1);
+                        });
+                        root.tagSearchResult = filteredTag;
+                    }
+                    else { root.tagSearchResult = false }
+                });
+            },
+            _performSimilaritySearch: function () {
+
+                root = this;
+                var intervalDifference = (root.selectedDateRange[1] - root.selectedDateRange[0]) / 60000;
+                var overlay = document.documentElement;
+                if (root.$$('#addAlarmForm').checkValidity()) {
+                    if (root.dataPattern[0]) {
+                        var bodyData = {}
+                        bodyData['tag_id'] = root.searchedTagValue;
+                        bodyData['user_id'] = window.user_id;
+                        bodyData['fp_name'] = root.$.alarmName.value;
+                        bodyData['description'] = root.$.description.value;
+                        bodyData['pattern_values'] = root.dataPattern;
+                        bodyData['pattern_start_date'] = root._timeConverter(root.selectedDateRange[0]);
+                        bodyData['pattern_end_date'] = root._timeConverter(root.selectedDateRange[root.selectedDateRange.length - 1]);
+                        bodyData['timespan_start_date'] = root.startDateRange;
+                        bodyData['timespan_end_date'] = root.endDateRange;
+                        bodyData['start_date'] = root.fingerprinttartDate;
+                        bodyData['insertion_date'] = root._timeConverter(new Date());
+                        bodyData['status'] = root.$.addfingerprinttatus.checked;
+                        bodyData['execution_interval'] = intervalDifference;
+                        bodyData['threshold'] = Number(root.$.similarityPercentage.value) / 100;
+                        bodyData['priority'] = root.$.similarityPriority.value.toLowerCase();
+                        if (root.$.addAlarmNotificaiton.checked)
+                            bodyData["email_status"] = root.$.addAlarmNotificaiton.checked;
+                        else {
+                            bodyData["email_status"] = root.$.addAlarmNotificaiton.checked = false;
+                        }
+                        if (root.$.addAlarmNotificaiton.checked) {
+                            bodyData["email"] = document.getElementById('addEmail').value;
+                        }
+                        else {
+                            bodyData["email"] = null;
+                        }
+                        root.$.e_createFingerPrint.body = JSON.stringify(bodyData);
+                        root.$.e_createFingerPrint.generateRequest();
+                    }
+                    else {
+                        root.trendAlerts = true;
+                        root.trendAlerts = 'Please select a Data Pattern';
+                        this.async(function () {
+                            root.trendAlerts = false;
+                        }, 3000);
+                    }
+                }
+            },
+            _backTofingerprint: function () {
+                window.location.href = "#/alerts/fingerprint";
+            },
+            _addAlarmNotificaiton: function () {
+                root = this;
+                if (root.AlarmNotificaiton) {
+                    root.AlarmNotificaiton = false;
+                }
+                else {
+                    root.AlarmNotificaiton = true;
+                }
+
+            },
+            _onResponse_createFingerPrint: function (e) {
+                root = this;
+                root.trendAlerts = e.detail.response.status;
+                this.async(function () {
+                    root.trendAlerts = false;
+                    window.location.href = "#/alerts/fingerprint";
+                }, 5000);
+            }
+
+
+        });
+    </script>
+
+</dom-module>

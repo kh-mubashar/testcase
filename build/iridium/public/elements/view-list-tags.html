@@ -1,0 +1,78 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-router/app-router.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="view-list-tags">
+
+    <template>
+        <style>
+            .nav-link.active {
+                background: #dee2e6;
+            }
+
+            ::content .derive-tag-container {
+                overflow-y: auto;
+                background: #dee2e6;
+            }
+
+            @media (max-width: 575.98px) {
+                ::content .derive-tag-container {
+                    width: 100% !important;
+                }
+            }
+
+            @media (max-width: 1199.98px) {
+                ::content .derive-tag-container {
+                    width: 340px !important;
+                }
+            }
+
+            .searchResult {
+                position: absolute;
+                top: 40px;
+                left: 0px;
+                width: 100%;
+                z-index: 1;
+            }
+
+            .searchResult .list-group .list-group-item {
+                cursor: pointer !important;
+            }
+
+            .tagVarElement {
+                position: relative;
+                width: 100%;
+            }
+        </style>
+
+        <!-- <template is="dom-if" if="{{tagMapping}}"> -->
+        <div id="fieldMapping" class="form-group mb-2">
+            <div style="position:relative;" class="tagVarElement mb-1 form-group d-flex justify-content-between">
+                <label for="inputMappingVariable" class="pr-2 col-form-label text-uppercase">[[tagMapping]]</label>
+                <div class="tagVarElement ">
+                    <input type="text" autocomplete="off" required="" class="form-control" name="[[tagMapping]]" id="inputMappingVariable">
+                    <template is="dom-if" if="[[tagSearchResult]]">
+                        <div class="searchResult">
+                            <ul class="list-group">
+                                <template is="dom-repeat" items="[[tagSearchResult]]" as="tagResults">
+                                    <li on-click="_addTag" data-tagselected$="[[tagResults.tag_id]]" class="border-none  list-group-item px-2 py-1 border-top rounded-0">
+                                        <div class="h6">[[tagResults.tag_id]]</div>
+                                        <div class="text-black-50 mb-0">[[tagResults.description]]</div>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+        <!-- </template> -->
+        <!-- <global-loader> -->
+        <iron-ajax auto="" id="e_searchTag" url="/getTagList" last-response="{{tagDataList}}" on-response="_onResponse_searchTag" on-error="_onError_searchTag"></iron-ajax>
+        <!-- </global-loader> -->
+
+    </template>
+
+    <script>Polymer({is:"view-list-tags",properties:{tagMapping:{type:String,readOnly:!0,notify:!0}},created:function created(){document.documentElement.classList.remove("in-progress")},ready:function ready(){root=this;document.addEventListener("input",function(e){if(-1!==e.target.parentNode.classList.toString().indexOf("tagVarElement")&&document.hasFocus()){var tagList=root.tagDataList,inputTag=e.target.value.toLowerCase(),filteredTag=tagList.filter(function(arr,key){return-1!==arr.tag_id.toLowerCase().indexOf(inputTag)});root.tagSearchResult=filteredTag}})},_addTag:function _addTag(e){var root=this;root.tagSearchResult=!1}});</script>
+
+</dom-module>
