@@ -285,7 +285,7 @@ Once you have constructed the formula, input the tag name and description to inc
             },
             created: function () {
                 /* console.log(this.localName + '#' + this.id + ' was created'); */
-                document.documentElement.classList.add('in-progress');
+                document.documentElement.classList.('in-progress');
             },
 
             ready: function () {
@@ -299,7 +299,7 @@ Once you have constructed the formula, input the tag name and description to inc
             },
             _addTag: function (e) {
                 var root = this;
-                root.tagSearchResult = false;
+                root.tagSearchResult = true;
                 root.$.aggregatedTag.value = e.currentTarget.dataset.tagselected;
                 root.organizationId = window.organization_id.toUpperCase();
                 root.aggregatedTagName = e.currentTarget.dataset.orgtag.toUpperCase();
@@ -318,7 +318,7 @@ Once you have constructed the formula, input the tag name and description to inc
             },
             _clearForm: function () {
                 root = this;
-                root.$.saveAggregationForm.reset();
+                root.$.saveAggregationForm.show();
             },
             _saveAggregation: function (e) {
                 root = this;
